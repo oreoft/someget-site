@@ -51,7 +51,7 @@ export default {
       },
       {
         q: '怎么删除账号和数据？',
-        a: '在 App 的「设置」里选择「删除账户」，你的登录账号和身份信息会被删除，本机数据也会一并清除。',
+        a: '在 App 的「设置」里选择「删除账户」。删除后，你的账号信息会从服务器删除，本机数据也会清空。',
       },
     ],
     privacy: {
@@ -89,7 +89,7 @@ export default {
         {
           h: '删除你的数据',
           p: [
-            '你可以随时在「设置」里删除账户。删除后，你的登录账号和邮箱等身份信息会从我们的服务器上删除，App 也会清除本机数据；你收藏过的公开内容将不再与可识别你身份的账号关联。',
+            '你可以随时在「设置」里删除账户。删除后，你的账号信息会从我们的服务器删除，本机数据也会清空。',
           ],
         },
         {
@@ -155,7 +155,7 @@ export default {
       },
       {
         q: 'How do I delete my account and data?',
-        a: 'Choose Delete Account in the app’s Settings. Your sign-in account and identity details are deleted, and data on your device is cleared too.',
+        a: 'Choose Delete Account in the app’s Settings. Your account information is deleted from our servers and data on your device is cleared.',
       },
     ],
     privacy: {
@@ -193,7 +193,7 @@ export default {
         {
           h: 'Deleting your data',
           p: [
-            'You can delete your account at any time in Settings. Your sign-in account and identity details, such as your email address, are deleted from our servers and the app clears data on your device. Public content you saved is no longer linked to an account that identifies you.',
+            'You can delete your account at any time in Settings. Your account information is deleted from our servers and data on your device is cleared.',
           ],
         },
         {
