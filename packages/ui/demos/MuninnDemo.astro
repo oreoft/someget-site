@@ -1,0 +1,439 @@
+---
+// Muninn 演示：点 + 粘贴链接 → 衔回内容 → 打开书页 → 留下低语。界面文字照搬 App 的中英文。
+interface Props {
+  lang: 'zh' | 'en';
+}
+
+const { lang } = Astro.props;
+const zh = lang === 'zh';
+const s = zh
+  ? {
+      search: '搜索书页...',
+      all: '全部',
+      addTitle: '添加书页',
+      cancel: '取消',
+      save: '保存',
+      paste: '从剪贴板粘贴',
+      willFetch: '将前往远方衔回此页',
+      fetching: '正在衔回...',
+      openOriginal: '打开原文',
+      editTags: '编辑标签',
+      whispers: '低语 (Whispers)',
+      writeNote: '留下低语',
+      myNote: '周末照着这个思路改一下家里的备份。',
+      tipPlus: '点 + 添加',
+      tipPaste: '点粘贴',
+      tipSave: '点保存',
+      tipOpen: '点开刚存的书页',
+      tipWhisper: '点这里留下低语',
+      again: '再来一次',
+      tagRead: '稍后读',
+      tagDev: '开发',
+    }
+  : {
+      search: 'Search leaves...',
+      all: 'All',
+      addTitle: 'Add Leaf',
+      cancel: 'Cancel',
+      save: 'Save',
+      paste: 'Paste from Clipboard',
+      willFetch: 'Fetching this leaf from afar',
+      fetching: 'Fetching...',
+      openOriginal: 'Open Original',
+      editTags: 'Edit Tags',
+      whispers: 'Whispers',
+      writeNote: 'Whisper',
+      myNote: 'Try this backup setup at home this weekend.',
+      tipPlus: 'Tap + to add',
+      tipPaste: 'Tap paste',
+      tipSave: 'Tap Save',
+      tipOpen: 'Open the new leaf',
+      tipWhisper: 'Tap to whisper',
+      again: 'Start over',
+      tagRead: 'Read later',
+      tagDev: 'Dev',
+    };
+const post = zh
+  ? '我把家里所有服务的备份都改成了 3-2-1：三份数据、两种介质、一份异地。分享一下具体怎么配的。'
+  : 'I moved every service at home to a 3-2-1 backup: three copies, two media, one offsite. Here is the exact setup.';
+---
+
+<div class="mu" data-demo="muninn">
+  <!-- 首页 -->
+  <div class="scr" data-screen="home">
+    <div class="nav"><span class="title">Muninn</span><button type="button" class="plus pulse" data-go="add" aria-label={s.addTitle}>+</button></div>
+    <span class="tip right">{s.tipPlus}</span>
+    <div class="search">{s.search}</div>
+    <div class="chips"><span class="on">{s.all}</span><span>X</span><span>YouTube</span><span>{zh ? '小红书' : 'Xiaohongshu'}</span></div>
+    <div class="leaf">
+      <p class="src"><b class="pf yt">YouTube</b> Tech Talks</p>
+      <p class="txt">{zh ? '十分钟讲清楚 Tailscale 的打洞原理' : 'How Tailscale punches through NAT, in 10 minutes'}</p>
+      <div class="thumb" style="background:#2b3a55"></div>
+    </div>
+    <div class="leaf">
+      <p class="src"><b class="pf xhs">{zh ? '小红书' : 'Xiaohongshu'}</b> @cook.lab</p>
+      <p class="txt">{zh ? '一锅出的番茄牛腩，二十分钟搞定' : 'One-pot tomato beef stew in 20 minutes'}</p>
+    </div>
+  </div>
+
+  <!-- 添加书页（空） -->
+  <div class="scr sheet-bg" data-screen="add" hidden>
+    <div class="sheet">
+      <div class="bar"><span class="muted">{s.cancel}</span><b>{s.addTitle}</b><span class="muted">{s.save}</span></div>
+      <div class="field muted">{zh ? '粘贴链接或写下你的低语...' : 'Paste a link or whisper on the leaf...'}</div>
+      <button type="button" class="ghost pulse" data-go="pasted">{s.paste}</button>
+      <span class="tip">{s.tipPaste}</span>
+    </div>
+  </div>
+
+  <!-- 添加书页（已粘贴） -->
+  <div class="scr sheet-bg" data-screen="pasted" hidden>
+    <div class="sheet">
+      <div class="bar"><span class="muted">{s.cancel}</span><b>{s.addTitle}</b><button type="button" class="link blink" data-go="fetching">{s.save}</button></div>
+      <div class="field">https://x.com/homelab_dan/status/18320…</div>
+      <p class="hint">↗ {s.willFetch}</p>
+      <span class="tip right">{s.tipSave}</span>
+    </div>
+  </div>
+
+  <!-- 衔回中 -->
+  <div class="scr" data-screen="fetching" data-auto="fetched:1400" hidden>
+    <div class="nav"><span class="title">Muninn</span><span class="plus">+</span></div>
+    <div class="search">{s.search}</div>
+    <div class="leaf loading">
+      <p class="src"><b class="pf x">X</b> <span class="spinner" aria-hidden="true"></span> {s.fetching}</p>
+      <p class="txt muted">https://x.com/homelab_dan/status/18320…</p>
+    </div>
+    <div class="leaf">
+      <p class="src"><b class="pf yt">YouTube</b> Tech Talks</p>
+      <p class="txt">{zh ? '十分钟讲清楚 Tailscale 的打洞原理' : 'How Tailscale punches through NAT, in 10 minutes'}</p>
+      <div class="thumb" style="background:#2b3a55"></div>
+    </div>
+  </div>
+
+  <!-- 衔回完成 -->
+  <div class="scr" data-screen="fetched" hidden>
+    <div class="nav"><span class="title">Muninn</span><span class="plus">+</span></div>
+    <div class="search">{s.search}</div>
+    <button type="button" class="leaf new pulse" data-go="detail">
+      <p class="src"><b class="pf x">X</b> @homelab_dan</p>
+      <p class="txt">{post}</p>
+      <div class="pics"><i style="background:#c9d6e6"></i><i style="background:#e6d9c9"></i></div>
+    </button>
+    <span class="tip left">{s.tipOpen}</span>
+    <div class="leaf">
+      <p class="src"><b class="pf yt">YouTube</b> Tech Talks</p>
+      <p class="txt">{zh ? '十分钟讲清楚 Tailscale 的打洞原理' : 'How Tailscale punches through NAT, in 10 minutes'}</p>
+    </div>
+  </div>
+
+  <!-- 详情 -->
+  <div class="scr detail" data-screen="detail" hidden>
+    <div class="bar"><button type="button" class="link" data-go="fetched">‹</button><span></span><span class="muted">•••</span></div>
+    <p class="src"><b class="pf x">X</b> @homelab_dan · 2h</p>
+    <p class="txt big">{post}</p>
+    <div class="pics"><i style="background:#c9d6e6"></i><i style="background:#e6d9c9"></i></div>
+    <div class="tags"><span>#{s.tagDev}</span><span>#{s.tagRead}</span></div>
+    <div class="actions"><span>{s.openOriginal}</span><span>{s.editTags}</span></div>
+    <p class="sec">{s.whispers}</p>
+    <button type="button" class="note-empty pulse" data-go="noted">{s.writeNote}…</button>
+    <span class="tip left">{s.tipWhisper}</span>
+  </div>
+
+  <!-- 留下低语后 -->
+  <div class="scr detail" data-screen="noted" hidden>
+    <div class="bar"><button type="button" class="link" data-go="fetched">‹</button><span></span><span class="muted">•••</span></div>
+    <p class="src"><b class="pf x">X</b> @homelab_dan · 2h</p>
+    <p class="txt big">{post}</p>
+    <div class="tags"><span>#{s.tagDev}</span><span>#{s.tagRead}</span></div>
+    <p class="sec">{s.whispers}</p>
+    <div class="note">{s.myNote}</div>
+    <button type="button" class="again" data-go="home">{s.again}</button>
+  </div>
+</div>
+
+<script>
+  import { initDemos } from './runtime';
+  initDemos();
+</script>
+
+<style>
+  .mu {
+    position: absolute;
+    inset: 0;
+    background: #f6f4fb;
+  }
+  .scr {
+    position: absolute;
+    inset: 0;
+    padding: 50px 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+  }
+  .scr[hidden] {
+    display: none;
+  }
+  button {
+    font: inherit;
+    color: inherit;
+    border: 0;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  .nav,
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .title {
+    font-size: 26px;
+    font-weight: 800;
+  }
+  .plus {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #6d5bd0;
+    color: #fff;
+    font-size: 20px;
+    line-height: 30px;
+    text-align: center;
+  }
+  .search {
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #ebe8f4;
+    color: #8e8aa0;
+    font-size: 13px;
+  }
+  .chips {
+    display: flex;
+    gap: 6px;
+  }
+  .chips span {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #ebe8f4;
+    font-size: 11px;
+  }
+  .chips .on {
+    background: #2a2346;
+    color: #fff;
+  }
+  .leaf {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    background: #fff;
+    border-radius: 14px;
+    padding: 10px 12px;
+  }
+  .leaf.new {
+    outline: 2px solid #6d5bd0;
+  }
+  .src {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #8e8aa0;
+  }
+  .pf {
+    padding: 1px 6px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 10px;
+  }
+  .x {
+    background: #111;
+  }
+  .yt {
+    background: #e33;
+  }
+  .xhs {
+    background: #ff2442;
+  }
+  .txt {
+    margin: 6px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .txt.big {
+    font-size: 15px;
+  }
+  .thumb {
+    margin-top: 8px;
+    height: 70px;
+    border-radius: 10px;
+  }
+  .pics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .pics i {
+    height: 64px;
+    border-radius: 10px;
+  }
+  .muted {
+    color: #8e8aa0;
+  }
+  .sheet-bg {
+    background: rgba(20, 16, 40, 0.35);
+    padding: 0;
+  }
+  .sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 44px;
+    background: #f6f4fb;
+    border-radius: 14px 14px 0 0;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .field {
+    min-height: 90px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #fff;
+    font-size: 13px;
+    word-break: break-all;
+  }
+  .ghost {
+    align-self: flex-start;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #ebe8f4;
+    color: #6d5bd0;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .hint {
+    margin: 0;
+    font-size: 12px;
+    color: #6d5bd0;
+  }
+  .link {
+    color: #6d5bd0;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .detail .bar .link {
+    font-size: 26px;
+    line-height: 1;
+  }
+  .tags {
+    display: flex;
+    gap: 6px;
+  }
+  .tags span {
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #ebe8f4;
+    color: #6d5bd0;
+    font-size: 11px;
+  }
+  .actions {
+    display: flex;
+    gap: 14px;
+    font-size: 12px;
+    color: #6d5bd0;
+    font-weight: 600;
+  }
+  .sec {
+    margin: 6px 0 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: #8e8aa0;
+  }
+  .note-empty {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1.5px dashed #c9c2e6;
+    color: #8e8aa0;
+    font-size: 13px;
+  }
+  .note {
+    padding: 12px;
+    border-radius: 12px;
+    background: #fff;
+    border-left: 3px solid #6d5bd0;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .spinner {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #d6d1ea;
+    border-top-color: #6d5bd0;
+    animation: spin 0.8s linear infinite;
+  }
+  .again {
+    position: absolute;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: #2a2346;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .tip {
+    align-self: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #e5532d;
+  }
+  .tip.left {
+    align-self: flex-start;
+  }
+  .tip.right {
+    align-self: flex-end;
+  }
+  .pulse {
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .blink {
+    animation: blink 1.2s ease-in-out infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(229, 83, 45, 0.45);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba(229, 83, 45, 0);
+    }
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0.4;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse,
+    .blink,
+    .spinner {
+      animation: none;
+    }
+  }
+</style>

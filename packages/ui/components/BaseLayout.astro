@@ -1,23 +1,45 @@
 ---
 import '../styles.css';
+import { ui, localize } from '../i18n.js';
 
 interface Props {
+  lang: 'zh' | 'en';
   title: string;
   description?: string;
   icon?: string;
+  // 当前页面不带语言前缀的路径，用来生成另一种语言的链接
+  path?: string;
 }
 
-const { title, description = '', icon } = Astro.props;
+const { lang, title, description = '', icon, path = '/' } = Astro.props;
+const site = Astro.site ? Astro.site.toString().replace(/\/$/, '') : '';
 ---
 
 <!doctype html>
-<html lang="zh-CN">
+<html lang={ui[lang].htmlLang}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:title" content={title} />
     {icon && <link rel="icon" href={icon} />}
+    {icon && <link rel="apple-touch-icon" href={icon} />}
+    <link rel="alternate" hreflang="zh" href={`${site}${localize('zh', path)}`} />
+    <link rel="alternate" hreflang="en" href={`${site}${localize('en', path)}`} />
+    {
+      lang === 'zh' && (
+        <script is:inline define:vars={{ enPath: localize('en', path) }}>
+          // 中文页：浏览器不是中文、且用户没手动选过语言时，跳到英文版
+          try {
+            var pref = localStorage.getItem('someget-lang');
+            var nav = (navigator.languages && navigator.languages[0]) || navigator.language || '';
+            if (!pref && !/^zh/i.test(nav)) location.replace(enPath);
+          } catch (e) {}
+        </script>
+      )
+    }
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

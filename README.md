@@ -10,15 +10,20 @@ someget 的官网（`someget.xyz`）和各产品落地页（`xxx.someget.xyz`）
 | `apps/loopback` | `loopback.someget.xyz` | Loopback 落地页 + 隐私政策 + 支持页 |
 | `apps/muninn` | `muninn.someget.xyz` | Muninn 落地页 + 隐私政策 + 支持页 |
 | `apps/instash` | `instash.someget.xyz` | InStash 落地页 + 隐私政策 + 支持页 |
-| `packages/ui` | — | 共用的设计规范（`styles.css`）、产品清单（`products.js`）、页头页脚、落地页骨架、手机外框 |
+| `packages/ui` | — | 共用部分：设计规范 `styles.css`、产品清单 `products.js`、界面文字 `i18n.js`、各产品文案 `content/<id>.js`（介绍、功能、常见问题、隐私政策）、页面组件 `components/`、手机演示 `demos/` |
 
 有自己官网的产品（如 overLc）不在这里，只在 `products.js` 里登记，官网外链过去。
+
+## 中英文
+
+中文在根路径（`/`、`/privacy`），英文在 `/en/` 下。中文页在浏览器语言不是中文、且用户没手动切换过时，会自动跳到英文。改文案只改 `packages/ui/content/<id>.js` 和 `products.js`，两种语言写在一起。
 
 ## 新增一个产品
 
 1. `packages/ui/products.js` 加一条
-2. 复制 `apps/loopback` 为 `apps/<id>`，改 `package.json` 的 `name`、`astro.config.mjs` 的 `site` 和端口、`index.astro` 里的 `id`，换 `public/icon.png`
-3. 官网图标放到 `apps/home/public/icons/<id>.png`
+2. 在 `packages/ui/content/<id>.js` 写文案，在 `packages/ui/demos/` 写手机演示，并在 `ProductLanding`、`ProductPrivacy`、`ProductSupport` 里登记
+3. 复制 `apps/loopback` 为 `apps/<id>`，改 `package.json` 的 `name`、`astro.config.mjs` 的 `site` 和端口、页面里的 `id` 和演示组件，换 `public/icon.png`
+4. 官网图标放到 `apps/home/public/icons/<id>.png`
 
 ## 本地开发
 

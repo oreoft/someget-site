@@ -1,0 +1,207 @@
+---
+import BaseLayout from '@someget/ui/components/BaseLayout.astro';
+import SiteHeader from '@someget/ui/components/SiteHeader.astro';
+import SiteFooter from '@someget/ui/components/SiteFooter.astro';
+import { products } from '@someget/ui/products';
+import { ui, localize } from '@someget/ui/i18n';
+
+interface Props {
+  lang: 'zh' | 'en';
+}
+
+const { lang } = Astro.props;
+const t = ui[lang];
+const copy = {
+  zh: {
+    title: 'someget · 小工具，认真做',
+    description: 'someget 出品的全部产品：Loopback、Muninn、InStash、overLc。',
+    h1: '小工具，\n认真做。',
+    lead: '每个产品只解决一件具体的事，并尽量把它做好。点进任何一个，看看它能帮你做什么。',
+  },
+  en: {
+    title: 'someget · Small tools, made with care',
+    description: 'Every product by someget: Loopback, Muninn, InStash and overLc.',
+    h1: 'Small tools,\nmade with care.',
+    lead: 'Each product does one specific thing and tries to do it well. Pick one to see what it can do for you.',
+  },
+}[lang];
+
+// 落地页链接带上语言：英文页链到 xxx.someget.xyz/en/
+const productHref = (p: (typeof products)[number]) => (p.website ? p.url : `${p.url}${localize(lang, '/')}`);
+const heroIcons = ['instash', 'muninn', 'loopback'];
+---
+
+<BaseLayout lang={lang} title={copy.title} description={copy.description} icon="/icons/muninn.png">
+  <SiteHeader lang={lang} home="" />
+  <main class="container">
+    <section class="hero">
+      <div>
+        <p class="mono eyebrow">INDEX · {String(products.length).padStart(2, '0')} PRODUCTS</p>
+        <h1 class="display">{copy.h1}</h1>
+        <p class="lead">{copy.lead}</p>
+      </div>
+      <div class="stack" aria-hidden="true">
+        {heroIcons.map((id, i) => <img class={`app-icon s${i}`} src={`/icons/${id}.png`} alt="" />)}
+      </div>
+    </section>
+
+    <section id="products" class="list">
+      {
+        products.map((p, i) => (
+          <article class="row">
+            <span class="mono num">{String(i + 1).padStart(2, '0')}</span>
+            {p.website ? (
+              <div class="app-icon mono mark">oL</div>
+            ) : (
+              <img class="app-icon" src={`/icons/${p.id}.png`} alt={`${p.name}`} width="112" height="112" />
+            )}
+            <div class="text">
+              <h2 class="display">
+                {p.name} <small>{p.platforms.join(' · ')}</small>
+              </h2>
+              <p>
+                <b>{p[lang].tagline}</b> {p[lang].summary}
+              </p>
+            </div>
+            <a class:list={['pill', { 'pill--accent': p.website }]} href={productHref(p)}>
+              {p.website ? t.visitSite : t.learnMore}
+            </a>
+          </article>
+        ))
+      }
+    </section>
+  </main>
+  <SiteFooter lang={lang} />
+</BaseLayout>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 48px;
+    align-items: center;
+    padding: 88px 0 80px;
+  }
+  .eyebrow {
+    margin: 0 0 24px;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--ink-2);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(52px, 8vw, 96px);
+    line-height: 0.98;
+    white-space: pre-line;
+  }
+  .lead {
+    margin: 32px 0 0;
+    max-width: 520px;
+    font-size: 19px;
+    line-height: 1.7;
+    color: var(--ink-2);
+  }
+  .stack {
+    position: relative;
+    height: 340px;
+  }
+  .stack img {
+    position: absolute;
+    box-shadow: 0 22px 44px rgba(0, 0, 0, 0.16);
+  }
+  .s0 {
+    left: 4%;
+    top: 70px;
+    width: 180px;
+    transform: rotate(-9deg);
+  }
+  .s1 {
+    left: 32%;
+    top: 10px;
+    width: 200px;
+    transform: rotate(4deg);
+  }
+  .s2 {
+    left: 56%;
+    top: 130px;
+    width: 180px;
+    transform: rotate(10deg);
+  }
+  .list {
+    border-top: 2px solid var(--ink);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 72px 112px minmax(0, 1fr) auto;
+    gap: 32px;
+    align-items: center;
+    padding: 40px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .num {
+    font-size: 15px;
+    color: var(--ink-3);
+  }
+  .row img,
+  .mark {
+    width: 112px;
+    height: 112px;
+  }
+  .mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 36px;
+  }
+  .text h2 {
+    margin: 0 0 10px;
+    font-size: 44px;
+  }
+  .text small {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: var(--ink-2);
+  }
+  .text p {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--ink-2);
+  }
+  .text b {
+    color: var(--ink);
+  }
+  @media (max-width: 860px) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .stack {
+      height: 260px;
+      transform: scale(0.8);
+      transform-origin: left top;
+    }
+    .row {
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 16px 20px;
+    }
+    .row img,
+    .mark {
+      width: 72px;
+      height: 72px;
+      font-size: 24px;
+    }
+    .text h2 {
+      font-size: 32px;
+    }
+    .num {
+      display: none;
+    }
+    .row .pill {
+      grid-column: 1 / -1;
+      justify-self: start;
+    }
+  }
+</style>

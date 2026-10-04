@@ -1,39 +1,76 @@
 // 产品清单：官网列表和各落地页共用。新增产品在这里加一条。
-// website 有值的产品（有自己的官网）在根站直接外链过去，不做落地页。
+// website 为 true 的产品有自己的官网，根站直接外链过去，不做落地页。
 export const products = [
   {
     id: 'loopback',
+    tint: '#1B3F6B',
     name: 'Loopback',
     platforms: ['iOS'],
-    tagline: '在手机上打开家里的服务。',
-    summary: '通过 SSH 隧道或 Tailscale，在 iPhone 上直接访问内网网页服务。',
     url: 'https://loopback.someget.xyz',
+    storeUrl: 'https://apps.apple.com/app/id6757280702',
+    zh: {
+      tagline: '在手机上打开内网里的服务。',
+      summary: '通过 Tailscale 或 SSH 隧道，在 iPhone 上直接打开 NAS、服务器面板这些只在内网能访问的网页。',
+    },
+    en: {
+      tagline: 'Your private network, one tap away.',
+      summary: 'Open the NAS dashboard, server panels and dev builds that only live on your private network, right on your iPhone, over Tailscale or an SSH tunnel.',
+    },
   },
   {
     id: 'muninn',
+    tint: '#8C7EE0',
     name: 'Muninn',
     platforms: ['iOS'],
-    tagline: '收藏一切，稍后再读。',
-    summary: '各个 App 里看到的文章、帖子、链接都收进一个地方，小组件提醒你回来读。',
     url: 'https://muninn.someget.xyz',
+    storeUrl: 'https://apps.apple.com/app/id6757280892',
+    zh: {
+      tagline: '看过的，都留得住。',
+      summary: '粘贴一条链接，Muninn 把推文、视频、帖子的正文和图片取回来，存进你自己的收藏库，随时搜得到。',
+    },
+    en: {
+      tagline: "Keep everything you've seen.",
+      summary: 'Paste a link and Muninn fetches the text and images behind it, from posts, threads and videos, into a library you can search any time.',
+    },
   },
   {
     id: 'instash',
+    tint: '#F1D28B',
     name: 'InStash',
     platforms: ['macOS', 'iOS'],
-    tagline: '浮在桌面上的便签。',
-    summary: '随手记下的东西贴在屏幕上，不被窗口盖住，iCloud 在 Mac 和 iPhone 间同步。',
     url: 'https://instash.someget.xyz',
+    storeUrl: 'https://apps.apple.com/app/id6757969574',
+    zh: {
+      tagline: '灵感即刻暂存，多端无缝同步。',
+      summary: '像系统便签一样贴在 Mac 桌面上，看见就是提醒；再加上 iCloud 同步和收纳便签的吸附坞。',
+    },
+    en: {
+      tagline: 'Your ideas, instantly stashed, synced everywhere.',
+      summary: 'Sticky notes that live on your Mac desktop, where seeing is remembering, plus iCloud sync and an edge deck to tuck them away.',
+    },
   },
   {
     id: 'overlc',
+    tint: '#16171A',
     name: 'overLc',
     platforms: ['Web'],
-    tagline: '[一句话定位，待确认]',
-    summary: '围绕 LeetCode 的刷题记录工具。[具体介绍待补充]',
     url: 'https://overlc.someget.xyz',
     website: true,
+    zh: {
+      tagline: '刷过的 LeetCode，不再忘。',
+      summary: '做完一道题打个卡，overLc 按遗忘曲线安排之后的复习日期，每天告诉你该回顾哪几道。',
+    },
+    en: {
+      tagline: 'LeetCode problems you solve, stay solved.',
+      summary: 'Check in after solving a problem and overLc schedules your reviews along the forgetting curve, so each day you know exactly what to revisit.',
+    },
   },
 ];
 
-export const contactEmail = '[联系邮箱]';
+export const contactEmail = 'hello@someget.xyz';
+
+export function getProduct(id) {
+  const p = products.find((x) => x.id === id);
+  if (!p) throw new Error(`products.js 里没有 ${id}`);
+  return p;
+}

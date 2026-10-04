@@ -1,0 +1,475 @@
+---
+// Loopback 演示：登录 Tailscale → 选设备 → 加端口书签 → 点卡片打开。
+// App 本身是英文界面，演示里的界面文字照搬 App；提示语按页面语言。
+interface Props {
+  lang: 'zh' | 'en';
+}
+
+const { lang } = Astro.props;
+const zh = lang === 'zh';
+const tip = {
+  signin: zh ? '点这里登录' : 'Tap to sign in',
+  signing: zh ? '正在连接 Tailscale…' : 'Connecting to Tailscale…',
+  pick: zh ? '点一台设备' : 'Tap a device',
+  save: zh ? '点 Save 保存' : 'Tap Save',
+  open: zh ? '点卡片打开' : 'Tap the card',
+  probing: zh ? '正在探测 nas:8096…' : 'Checking nas:8096…',
+  tunnel: zh ? '已通过 Tailscale 连接' : 'Connected via Tailscale',
+  again: zh ? '再来一次' : 'Start over',
+};
+---
+
+<div class="lb" data-demo="loopback">
+  <!-- 0 Servers -->
+  <div class="scr" data-screen="servers">
+    <div class="nav"><span class="title">Servers</span><span class="plus">+</span></div>
+    <p class="group">TAILSCALE · DIRECT</p>
+    <div class="card center">
+      <div class="ts-logo" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <p class="muted">Connect Tailscale</p>
+      <button type="button" class="primary pulse" data-go="signing">Sign in with Tailscale</button>
+      <span class="tip">{tip.signin}</span>
+    </div>
+    <p class="group">SERVERS · SSH TUNNEL</p>
+    <div class="card row"><span class="dot gray"></span><span>dev-box</span><span class="muted sm">10.0.0.8:22</span></div>
+    <div class="tabs"><span>Browser</span><span class="on">Servers</span><span>Settings</span></div>
+  </div>
+
+  <!-- 1 登录中 -->
+  <div class="scr" data-screen="signing" data-auto="devices:1300" hidden>
+    <div class="nav"><span class="title">Servers</span></div>
+    <div class="center fill">
+      <span class="spinner" aria-hidden="true"></span>
+      <p class="muted">{tip.signing}</p>
+    </div>
+  </div>
+
+  <!-- 2 设备列表 -->
+  <div class="scr" data-screen="devices" hidden>
+    <div class="nav"><span class="title">Servers</span><span class="plus">+</span></div>
+    <p class="group">TAILSCALE · DIRECT</p>
+    <div class="card list">
+      <button type="button" class="row pulse-row" data-go="add">
+        <span class="dot green"></span><span class="grow">nas</span><span class="muted sm">100.101.2.3</span>
+      </button>
+      <div class="row"><span class="dot green"></span><span class="grow">homelab</span><span class="muted sm">100.88.14.20</span></div>
+      <div class="row"><span class="dot gray"></span><span class="grow">macbook</span><span class="muted sm">100.71.9.4</span></div>
+    </div>
+    <span class="tip left">{tip.pick}</span>
+    <div class="tabs"><span>Browser</span><span class="on">Servers</span><span>Settings</span></div>
+  </div>
+
+  <!-- 3 新建书签 -->
+  <div class="scr sheet-bg" data-screen="add" hidden>
+    <div class="sheet">
+      <div class="nav small"><span class="muted">Cancel</span><span class="title-sm">Add Bookmark</span><button type="button" class="link pulse-text" data-go="browser">Save</button></div>
+      <p class="group">BOOKMARK INFO</p>
+      <div class="card list">
+        <div class="row"><span class="grow">Device</span><span class="muted">nas</span></div>
+        <div class="row"><span class="grow">Name</span><span>Jellyfin</span></div>
+        <div class="row"><span class="grow">Port</span><span>8096</span></div>
+        <div class="row"><span class="grow">Path</span><span class="muted">/web</span></div>
+      </div>
+      <p class="group">COLOR</p>
+      <div class="card swatches">
+        <span style="background:#5b8cff" class="sel"></span><span style="background:#ff9f43"></span><span style="background:#2ecc71"></span><span style="background:#e056fd"></span><span style="background:#ff6b6b"></span>
+      </div>
+      <span class="tip right">{tip.save}</span>
+    </div>
+  </div>
+
+  <!-- 4 Browser 首页 -->
+  <div class="scr" data-screen="browser" hidden>
+    <div class="nav"><span class="title">Loopback</span><span class="plus">+</span></div>
+    <div class="chips"><span class="on">All</span><span>nas</span><span>homelab</span></div>
+    <div class="grid">
+      <button type="button" class="bm pulse" style="background:#5b8cff" data-go="probing">
+        <span class="ic" aria-hidden="true">▶</span><b>Jellyfin</b><small>nas:8096</small>
+      </button>
+      <div class="bm" style="background:#ff9f43"><span class="ic" aria-hidden="true">⌂</span><b>Home Assistant</b><small>homelab:8123</small></div>
+      <div class="bm" style="background:#2ecc71"><span class="ic" aria-hidden="true">≡</span><b>Grafana</b><small>homelab:3000</small></div>
+    </div>
+    <span class="tip left">{tip.open}</span>
+    <div class="tabs"><span class="on">Browser</span><span>Servers</span><span>Settings</span></div>
+  </div>
+
+  <!-- 5 探测端口 -->
+  <div class="scr" data-screen="probing" data-auto="web:1200" hidden>
+    <div class="nav"><span class="title">Loopback</span></div>
+    <div class="center fill">
+      <span class="spinner" aria-hidden="true"></span>
+      <p class="muted">{tip.probing}</p>
+    </div>
+  </div>
+
+  <!-- 6 打开网页 -->
+  <div class="scr web" data-screen="web" hidden>
+    <div class="urlbar">
+      <button type="button" class="link" data-go="browser" aria-label="Back">‹</button>
+      <span class="url">nas:8096/web</span>
+      <span class="lock" aria-hidden="true">●</span>
+    </div>
+    <p class="ok">{tip.tunnel}</p>
+    <div class="site">
+      <p class="site-title">Jellyfin</p>
+      <p class="site-h">Continue Watching</p>
+      <div class="posters"><i style="background:#3b4a6b"></i><i style="background:#6b3b4a"></i><i style="background:#3b6b5a"></i></div>
+      <p class="site-h">Movies</p>
+      <div class="posters"><i style="background:#56406b"></i><i style="background:#6b5a3b"></i><i style="background:#3b5f6b"></i></div>
+    </div>
+    <button type="button" class="again" data-go="servers">{tip.again}</button>
+  </div>
+</div>
+
+<script>
+  import { initDemos } from './runtime';
+  initDemos();
+</script>
+
+<style>
+  .lb {
+    position: absolute;
+    inset: 0;
+    background: #f2f2f7;
+  }
+  .scr {
+    position: absolute;
+    inset: 0;
+    padding: 50px 14px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .scr[hidden] {
+    display: none;
+  }
+  button {
+    font: inherit;
+    color: inherit;
+    border: 0;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .title {
+    font-size: 26px;
+    font-weight: 700;
+  }
+  .plus {
+    font-size: 24px;
+    color: #007aff;
+  }
+  .nav.small {
+    padding: 4px 2px 8px;
+  }
+  .title-sm {
+    font-weight: 600;
+  }
+  .group {
+    margin: 8px 4px 0;
+    font-size: 11px;
+    color: #8e8e93;
+  }
+  .card {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+  }
+  .card.center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 12px;
+  }
+  .card.row,
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 12px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .list .row + .row {
+    border-top: 1px solid #ececf0;
+  }
+  .grow {
+    flex: 1;
+  }
+  .muted {
+    color: #8e8e93;
+  }
+  .sm {
+    font-size: 12px;
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .green {
+    background: #34c759;
+  }
+  .gray {
+    background: #c7c7cc;
+  }
+  .primary {
+    background: #007aff;
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-weight: 600;
+    text-align: center;
+  }
+  .link {
+    color: #007aff;
+    font-weight: 600;
+  }
+  .ts-logo {
+    display: grid;
+    grid-template-columns: repeat(3, 8px);
+    gap: 4px;
+  }
+  .ts-logo i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #1f1f1f;
+  }
+  .ts-logo i:nth-child(odd) {
+    opacity: 0.25;
+  }
+  .ts-logo i:nth-child(5),
+  .ts-logo i:nth-child(4),
+  .ts-logo i:nth-child(6),
+  .ts-logo i:nth-child(8) {
+    opacity: 1;
+  }
+  .tabs {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 56px;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    padding-top: 10px;
+    background: rgba(249, 249, 249, 0.95);
+    border-top: 1px solid #e5e5ea;
+    font-size: 11px;
+    color: #8e8e93;
+  }
+  .tabs .on {
+    color: #007aff;
+    font-weight: 600;
+  }
+  .center.fill {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .spinner {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 3px solid #d1d1d6;
+    border-top-color: #007aff;
+    animation: spin 0.8s linear infinite;
+  }
+  .sheet-bg {
+    background: rgba(0, 0, 0, 0.35);
+    padding: 0;
+  }
+  .sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 44px;
+    background: #f2f2f7;
+    border-radius: 14px 14px 0 0;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .swatches {
+    display: flex;
+    gap: 10px;
+    padding: 12px;
+  }
+  .swatches span {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+  }
+  .swatches .sel {
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 4px #5b8cff;
+  }
+  .chips {
+    display: flex;
+    gap: 6px;
+  }
+  .chips span {
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: #e5e5ea;
+    font-size: 12px;
+  }
+  .chips .on {
+    background: #111;
+    color: #fff;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .bm {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px;
+    border-radius: 14px;
+    color: #fff;
+    min-height: 92px;
+  }
+  .bm .ic {
+    font-size: 18px;
+    margin-bottom: auto;
+  }
+  .bm b {
+    font-size: 14px;
+  }
+  .bm small {
+    font-size: 11px;
+    opacity: 0.85;
+  }
+  .web {
+    background: #101418;
+    color: #fff;
+    padding: 46px 0 0;
+  }
+  .urlbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 12px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: #2a2f36;
+    font-size: 13px;
+  }
+  .urlbar .link {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .url {
+    flex: 1;
+  }
+  .lock {
+    color: #34c759;
+    font-size: 8px;
+  }
+  .ok {
+    margin: 6px 12px 0;
+    font-size: 11px;
+    color: #34c759;
+  }
+  .site {
+    padding: 10px 14px;
+  }
+  .site-title {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #a78bfa;
+  }
+  .site-h {
+    margin: 14px 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .posters {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .posters i {
+    aspect-ratio: 2 / 3;
+    border-radius: 8px;
+  }
+  .again {
+    position: absolute;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: #fff;
+    color: #111;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .tip {
+    align-self: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #e5532d;
+  }
+  .tip.left {
+    align-self: flex-start;
+    margin-left: 4px;
+  }
+  .tip.right {
+    align-self: flex-end;
+  }
+  .pulse,
+  .pulse-row {
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .pulse-text {
+    animation: blink 1.2s ease-in-out infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(229, 83, 45, 0.45);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba(229, 83, 45, 0);
+    }
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0.4;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse,
+    .pulse-row,
+    .pulse-text,
+    .spinner {
+      animation: none;
+    }
+  }
+</style>

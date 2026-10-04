@@ -6,6 +6,8 @@
   "exports": {
     "./styles.css": "./styles.css",
     "./products": "./products.js",
-    "./components/*": "./components/*"
+    "./i18n": "./i18n.js",
+    "./components/*": "./components/*",
+    "./demos/*": "./demos/*"
   }
 }

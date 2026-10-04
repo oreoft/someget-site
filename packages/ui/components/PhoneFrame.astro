@@ -1,11 +1,18 @@
 ---
 // iPhone 外框。里面放各产品自己的可点击 mock 页面（slot），外框和尺寸全站统一。
+// 屏幕宽约 300px，演示组件按这个宽度写，高度撑满。
+interface Props {
+  label?: string;
+}
+
+const { label = 'App demo' } = Astro.props;
 ---
 
-<div class="phone" role="group" aria-label="App 演示">
+<div class="phone" role="group" aria-label={label}>
   <div class="screen">
+    <div class="island" aria-hidden="true"></div>
     <slot>
-      <p class="empty">[可交互演示待做]</p>
+      <p class="empty">[demo]</p>
     </slot>
   </div>
 </div>
@@ -15,23 +22,40 @@
     width: 320px;
     max-width: 100%;
     aspect-ratio: 390 / 844;
-    padding: 12px;
-    border-radius: 52px;
-    background: var(--ink);
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.18);
+    padding: 11px;
+    border-radius: 54px;
+    background: #16171a;
+    box-shadow:
+      0 0 0 2px #2b2d33 inset,
+      0 30px 60px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
   }
   .screen {
+    position: relative;
     width: 100%;
     height: 100%;
-    border-radius: 40px;
-    background: var(--surface);
+    border-radius: 44px;
+    background: #f2f2f7;
     overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Noto Sans SC', sans-serif;
+    color: #111;
+    font-size: 14px;
+  }
+  .island {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92px;
+    height: 26px;
+    border-radius: 999px;
+    background: #000;
+    z-index: 5;
   }
   .empty {
+    margin: 0;
+    padding-top: 50%;
+    text-align: center;
     color: var(--ink-3);
-    font-size: 14px;
   }
 </style>

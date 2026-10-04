@@ -1,0 +1,388 @@
+---
+// InStash 演示：在 iPhone 上新建便签 → 选颜色 → 打开「在 Mac 桌面显示」→ 看到它出现在 Mac 桌面上。
+interface Props {
+  lang: 'zh' | 'en';
+}
+
+const { lang } = Astro.props;
+const zh = lang === 'zh';
+const s = zh
+  ? {
+      all: '所有便签',
+      newNote: '新建便签',
+      cancel: '取消',
+      done: '完成',
+      color: '便签颜色',
+      showOnMac: '在 Mac 桌面显示',
+      showOnMacSub: '新便签会自动出现在 Mac 桌面上',
+      text: '周五前把发版说明写完\n- 截图\n- 更新日志',
+      n1: '买牛奶、鸡蛋',
+      n2: '周会要点：先定下季度目标',
+      n3: 'WiFi 密码在路由器背面',
+      tipPlus: '点 + 新建',
+      tipColor: '挑个颜色',
+      tipToggle: '打开这个开关',
+      mac: '你的 Mac 桌面',
+      again: '再来一次',
+    }
+  : {
+      all: 'All Notes',
+      newNote: 'New Note',
+      cancel: 'Cancel',
+      done: 'Done',
+      color: 'Note Color',
+      showOnMac: 'Show on Mac Desktop',
+      showOnMacSub: 'New notes will appear on your Mac desktop',
+      text: 'Finish the release notes by Friday\n- Screenshots\n- Changelog',
+      n1: 'Milk, eggs',
+      n2: 'Weekly sync: agree on quarterly goals',
+      n3: 'Wi-Fi password is on the router',
+      tipPlus: 'Tap + to add',
+      tipColor: 'Pick a color',
+      tipToggle: 'Turn this on',
+      mac: 'Your Mac desktop',
+      again: 'Start over',
+    };
+const colors = ['yellow', 'blue', 'green', 'pink', 'purple', 'gray'];
+---
+
+<div class="is" data-demo="instash" data-color="yellow">
+  <!-- 列表 -->
+  <div class="scr" data-screen="list">
+    <div class="nav"><span class="title">{s.all}</span><button type="button" class="plus pulse" data-go="edit" aria-label={s.newNote}>+</button></div>
+    <span class="tip right">{s.tipPlus}</span>
+    <div class="note c-yellow">{s.n1}</div>
+    <div class="note c-blue">{s.n2}</div>
+    <div class="note c-green">{s.n3}</div>
+  </div>
+
+  <!-- 新建 -->
+  <div class="scr" data-screen="edit" hidden>
+    <div class="bar"><span class="muted">{s.cancel}</span><b>{s.newNote}</b><span class="muted">{s.done}</span></div>
+    <div class="paper new">{s.text}</div>
+    <p class="label">{s.color} <span class="tip inline">{s.tipColor}</span></p>
+    <div class="swatches">
+      {colors.map((c) => <button type="button" class={`sw c-${c}`} data-set={`color:${c}`} aria-label={c}></button>)}
+    </div>
+    <button type="button" class="toggle-row pulse" data-go="mac">
+      <span>
+        <b>{s.showOnMac}</b>
+        <small>{s.showOnMacSub}</small>
+      </span>
+      <span class="switch" aria-hidden="true"></span>
+    </button>
+    <span class="tip right">{s.tipToggle}</span>
+  </div>
+
+  <!-- Mac 桌面 -->
+  <div class="scr mac" data-screen="mac" hidden>
+    <p class="mac-label">{s.mac}</p>
+    <div class="desk">
+      <div class="menubar"><span></span>InStash</div>
+      <div class="sticky old c-blue">{s.n2}</div>
+      <div class="sticky new pop">{s.text}</div>
+      <div class="dock"><i></i><i></i><i class="me"></i><i></i></div>
+    </div>
+    <button type="button" class="again" data-go="list">{s.again}</button>
+  </div>
+</div>
+
+<script>
+  import { initDemos } from './runtime';
+  initDemos();
+</script>
+
+<style>
+  .is {
+    position: absolute;
+    inset: 0;
+    background: #f7f5ef;
+    --new: #fbe7a1;
+  }
+  .is[data-color='blue'] {
+    --new: #bfe0fb;
+  }
+  .is[data-color='green'] {
+    --new: #c8efc4;
+  }
+  .is[data-color='pink'] {
+    --new: #fbcbe0;
+  }
+  .is[data-color='purple'] {
+    --new: #ddd0fa;
+  }
+  .is[data-color='gray'] {
+    --new: #e2e2e2;
+  }
+  .c-yellow {
+    background: #fbe7a1;
+  }
+  .c-blue {
+    background: #bfe0fb;
+  }
+  .c-green {
+    background: #c8efc4;
+  }
+  .c-pink {
+    background: #fbcbe0;
+  }
+  .c-purple {
+    background: #ddd0fa;
+  }
+  .c-gray {
+    background: #e2e2e2;
+  }
+  .scr {
+    position: absolute;
+    inset: 0;
+    padding: 50px 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .scr[hidden] {
+    display: none;
+  }
+  button {
+    font: inherit;
+    color: inherit;
+    border: 0;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  .nav,
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .title {
+    font-size: 26px;
+    font-weight: 700;
+  }
+  .plus {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #b5462e;
+    color: #fff;
+    font-size: 20px;
+    line-height: 30px;
+    text-align: center;
+  }
+  .note {
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+  .muted {
+    color: #8e8e93;
+  }
+  .paper {
+    min-height: 130px;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--new);
+    white-space: pre-line;
+    font-size: 14px;
+    line-height: 1.6;
+    transition: background 0.2s;
+  }
+  .label {
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: #8e8e93;
+  }
+  .swatches {
+    display: flex;
+    gap: 10px;
+  }
+  .sw {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  }
+  .is[data-color='yellow'] .sw.c-yellow,
+  .is[data-color='blue'] .sw.c-blue,
+  .is[data-color='green'] .sw.c-green,
+  .is[data-color='pink'] .sw.c-pink,
+  .is[data-color='purple'] .sw.c-purple,
+  .is[data-color='gray'] .sw.c-gray {
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 4px #b5462e;
+  }
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px;
+    margin-top: 6px;
+    border-radius: 12px;
+    background: #fff;
+  }
+  .toggle-row b {
+    display: block;
+    font-size: 14px;
+  }
+  .toggle-row small {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: #8e8e93;
+  }
+  .switch {
+    width: 44px;
+    height: 26px;
+    border-radius: 999px;
+    background: #e5e5ea;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+  .mac {
+    background: #1d2433;
+    padding: 50px 10px 20px;
+  }
+  .mac-label {
+    margin: 0;
+    text-align: center;
+    color: #cfd6e4;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .desk {
+    position: relative;
+    flex: 1;
+    max-height: 420px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #5a7bb5;
+    background-image: linear-gradient(160deg, #6e8fd0, #3c5486);
+  }
+  .menubar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 20px;
+    padding: 0 8px;
+    background: rgba(255, 255, 255, 0.35);
+    font-size: 10px;
+    font-weight: 700;
+    color: #111;
+  }
+  .menubar span {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: #111;
+  }
+  .sticky {
+    position: absolute;
+    width: 128px;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: pre-line;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+  }
+  .sticky.old {
+    left: 14px;
+    top: 44px;
+    transform: rotate(-2deg);
+  }
+  .sticky.new {
+    right: 14px;
+    top: 120px;
+    background: var(--new);
+  }
+  .pop {
+    animation: pop 0.5s ease-out;
+  }
+  .dock {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.3);
+  }
+  .dock i {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.7);
+  }
+  .dock .me {
+    background: #fbe7a1;
+  }
+  .again {
+    align-self: center;
+    margin-top: 12px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: #fff;
+    color: #111;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .tip {
+    align-self: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #e5532d;
+  }
+  .tip.right {
+    align-self: flex-end;
+  }
+  .tip.inline {
+    margin-left: 6px;
+  }
+  .pulse {
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(229, 83, 45, 0.45);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba(229, 83, 45, 0);
+    }
+  }
+  @keyframes pop {
+    from {
+      transform: scale(0.6);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pulse,
+    .pop {
+      animation: none;
+    }
+  }
+</style>
