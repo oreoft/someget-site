@@ -51,7 +51,7 @@ export default {
       },
       {
         q: '怎么删除账号和数据？',
-        a: '在 App 的「设置」里选择「删除账户」。如果你希望我们确认服务器上的收藏也已全部清除，请发邮件给我们。',
+        a: '在 App 的「设置」里选择「删除账户」，你的登录账号和身份信息会被删除，本机数据也会一并清除。',
       },
     ],
     privacy: {
@@ -89,7 +89,7 @@ export default {
         {
           h: '删除你的数据',
           p: [
-            '你可以随时在「设置」里删除账户，App 会同时清除本机数据。如需确认服务器上的收藏、标签和笔记也已全部删除，请发邮件至 hello@someget.xyz，我们会处理并回复你。',
+            '你可以随时在「设置」里删除账户。删除后，你的登录账号和邮箱等身份信息会从我们的服务器上删除，App 也会清除本机数据；你收藏过的公开内容将不再与可识别你身份的账号关联。',
           ],
         },
         {
@@ -155,7 +155,7 @@ export default {
       },
       {
         q: 'How do I delete my account and data?',
-        a: 'Choose Delete Account in the app’s Settings. If you want us to confirm that your saved items are also cleared from our servers, email us.',
+        a: 'Choose Delete Account in the app’s Settings. Your sign-in account and identity details are deleted, and data on your device is cleared too.',
       },
     ],
     privacy: {
@@ -193,7 +193,7 @@ export default {
         {
           h: 'Deleting your data',
           p: [
-            'You can delete your account at any time in Settings, which also clears data on your device. To confirm that your saved items, tags and notes are also removed from our servers, email hello@someget.xyz and we will take care of it.',
+            'You can delete your account at any time in Settings. Your sign-in account and identity details, such as your email address, are deleted from our servers and the app clears data on your device. Public content you saved is no longer linked to an account that identifies you.',
           ],
         },
         {
