@@ -1,0 +1,90 @@
+/* someget 共用设计规范：所有站点（官网 + 落地页）都引这一份，保证风格统一。 */
+:root {
+  --bg: #f6f6f3;
+  --ink: #16171a;
+  --ink-2: #4a4d55;
+  --ink-3: #8a8d94;
+  --line: #d6d6d0;
+  --accent: #e5532d;
+  --surface: #ffffff;
+
+  --font-display: 'Bricolage Grotesque', 'Noto Sans SC', system-ui, sans-serif;
+  --font-body: 'Noto Sans SC', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-icon: 22.5%;
+  --container: 1200px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.container {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+
+.app-icon {
+  border-radius: var(--radius-icon);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 22px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.pill:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.pill--accent {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.pill--accent:hover {
+  background: #c9431f;
+  border-color: #c9431f;
+  color: #fff;
+}

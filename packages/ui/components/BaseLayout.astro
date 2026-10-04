@@ -1,0 +1,31 @@
+---
+import '../styles.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  icon?: string;
+}
+
+const { title, description = '', icon } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    {icon && <link rel="icon" href={icon} />}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@600&display=swap"
+    />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,112 @@
+---
+// 落地页统一骨架：顶部大图 → 介绍 → 功能演示（手机模拟器）→ 下载。
+// 每个产品传自己的内容；版块顺序和样式在这里统一。
+import BaseLayout from './BaseLayout.astro';
+import SiteHeader from './SiteHeader.astro';
+import SiteFooter from './SiteFooter.astro';
+import PhoneFrame from './PhoneFrame.astro';
+import { products } from '../products.js';
+
+interface Props {
+  id: string;
+  storeUrl?: string;
+}
+
+const { id, storeUrl } = Astro.props;
+const product = products.find((p) => p.id === id);
+if (!product) throw new Error(`products.js 里没有 ${id}`);
+---
+
+<BaseLayout title={`${product.name} · someget`} description={product.summary} icon="/icon.png">
+  <SiteHeader />
+  <main class="container">
+    <section class="hero">
+      <img class="app-icon" src="/icon.png" alt={`${product.name} 图标`} width="128" height="128" />
+      <p class="mono platforms">{product.platforms.join(' · ')}</p>
+      <h1 class="display">{product.name}</h1>
+      <p class="tagline">{product.tagline}</p>
+      <p class="summary">{product.summary}</p>
+      <a class="pill pill--accent" href={storeUrl ?? '#download'}>
+        {storeUrl ? '在 App Store 下载' : '[App Store 链接待填]'}
+      </a>
+    </section>
+
+    <section class="block">
+      <h2 class="display">介绍</h2>
+      <slot name="intro"><p class="todo">[产品介绍待写]</p></slot>
+    </section>
+
+    <section class="block demo">
+      <div>
+        <h2 class="display">点一点试试</h2>
+        <slot name="demo-text"><p class="todo">[功能演示说明待写]</p></slot>
+      </div>
+      {Astro.slots.has('demo') ? <PhoneFrame><slot name="demo" /></PhoneFrame> : <PhoneFrame />}
+    </section>
+
+    <section id="download" class="block">
+      <h2 class="display">下载</h2>
+      <a class="pill" href={storeUrl ?? '#download'}>{storeUrl ? 'App Store' : '[App Store 链接待填]'}</a>
+    </section>
+  </main>
+  <SiteFooter privacy="/privacy" />
+</BaseLayout>
+
+<style>
+  .hero {
+    padding: 88px 0 72px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .hero img {
+    width: 128px;
+    height: 128px;
+  }
+  .platforms {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(56px, 9vw, 104px);
+    line-height: 0.95;
+  }
+  .tagline {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .summary {
+    margin: 0 0 16px;
+    max-width: 560px;
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--ink-2);
+  }
+  .block {
+    padding: 64px 0;
+    border-top: 1px solid var(--line);
+  }
+  .block h2 {
+    margin: 0 0 20px;
+    font-size: 40px;
+  }
+  .demo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 48px;
+    align-items: center;
+  }
+  .todo {
+    color: var(--ink-3);
+  }
+  @media (max-width: 760px) {
+    .demo {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: center;
+    }
+  }
+</style>

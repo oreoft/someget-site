@@ -1,0 +1,43 @@
+---
+interface Props {
+  home?: string;
+}
+
+const { home = 'https://someget.xyz' } = Astro.props;
+---
+
+<header class="container">
+  <div class="bar">
+    <a class="logo display" href={home}>someget<span>.</span></a>
+    <nav>
+      <a href={`${home}/#products`}>产品</a>
+      <a href="#contact">联系</a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0;
+    border-bottom: 2px solid var(--ink);
+  }
+  .logo {
+    font-size: 22px;
+    text-decoration: none;
+  }
+  .logo span {
+    color: var(--accent);
+  }
+  nav {
+    display: flex;
+    gap: 28px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  nav a {
+    text-decoration: none;
+  }
+</style>
