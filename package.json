@@ -2,15 +2,12 @@
   "name": "someget-site",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
-    "dev": "npm run dev -w @someget/home",
-    "dev:loopback": "npm run dev -w @someget/loopback",
-    "dev:muninn": "npm run dev -w @someget/muninn",
-    "dev:instash": "npm run dev -w @someget/instash",
-    "build": "npm run build --workspaces --if-present"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^7.3.5"
   }
 }

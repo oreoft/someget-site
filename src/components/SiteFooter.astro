@@ -1,0 +1,59 @@
+---
+import { contactEmail } from '../products.js';
+import { ui, localize } from '../i18n.js';
+
+interface Props {
+  lang: 'zh' | 'en';
+  // 落地页传产品路径（如 /loopback），页脚会带上该产品的支持页和隐私政策链接
+  productPath?: string;
+}
+
+const { lang, productPath } = Astro.props;
+const t = ui[lang];
+const year = new Date().getFullYear();
+---
+
+<footer id="contact" class="container">
+  <div class="foot">
+    <span class="logo display">someget<span>.</span></span>
+    <div class="links">
+      <span>© {year} someget</span>
+      <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+      {productPath && <a href={localize(lang, `${productPath}/support`)}>{t.support}</a>}
+      {productPath && <a href={localize(lang, `${productPath}/privacy`)}>{t.privacy}</a>}
+    </div>
+  </div>
+</footer>
+
+<style>
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 48px 0 56px;
+    border-top: 2px solid var(--ink);
+    margin-top: 32px;
+  }
+  .logo {
+    font-size: 40px;
+  }
+  .logo span {
+    color: var(--accent);
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    font-size: 14px;
+    color: var(--ink-2);
+  }
+  .links a {
+    text-decoration: none;
+  }
+  .links a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+  }
+</style>

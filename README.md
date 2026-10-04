@@ -1,39 +1,43 @@
 # someget-site
 
-someget 的官网（`someget.xyz`）和各产品落地页（`xxx.someget.xyz`）。Astro 静态站，npm workspaces。
+someget 的官网 `someget.xyz`，以及没有网页版的产品的落地页。Astro 静态站，部署为一个站点。
+
+## 产品网址规则
+
+1. 官网：`someget.xyz`
+2. 有网页版的产品：独立子域名，如 `overlc.someget.xyz`，不在本仓库，官网外链过去
+3. 没有网页版的产品：落地页在本站 `someget.xyz/<产品>`，如 `someget.xyz/loopback`，附带 `/privacy` 和 `/support`
+4. 产品以后有了网页版，就迁出去改用子域名，本站的 `/<产品>` 跳转过去
 
 ## 结构
 
-| 目录 | 域名 | 内容 |
-|---|---|---|
-| `apps/home` | `someget.xyz` | 官网，陈列全部产品 |
-| `apps/loopback` | `loopback.someget.xyz` | Loopback 落地页 + 隐私政策 + 支持页 |
-| `apps/muninn` | `muninn.someget.xyz` | Muninn 落地页 + 隐私政策 + 支持页 |
-| `apps/instash` | `instash.someget.xyz` | InStash 落地页 + 隐私政策 + 支持页 |
-| `packages/ui` | — | 共用部分：设计规范 `styles.css`、产品清单 `products.js`、界面文字 `i18n.js`、各产品文案 `content/<id>.js`（介绍、功能、常见问题、隐私政策）、页面组件 `components/`、手机演示 `demos/` |
-
-有自己官网的产品（如 overLc）不在这里，只在 `products.js` 里登记，官网外链过去。
+| 路径 | 内容 |
+|---|---|
+| `src/pages/` | 页面路由：首页、`[product]/`（落地页、隐私政策、支持页），`en/` 下是英文版 |
+| `src/products.js` | 产品清单，首页列表和落地页共用 |
+| `src/content/<id>.js` | 各产品的中英文案：介绍、功能、常见问题、隐私政策 |
+| `src/components/` | 页头页脚、首页、落地页骨架、隐私和支持页、手机外框 |
+| `src/demos/` | 各产品的可点击手机演示 |
+| `src/i18n.js` | 导航、按钮等界面文字 |
+| `src/styles.css` | 共用设计规范（颜色、字体、按钮） |
+| `public/icons/` | 产品图标 |
 
 ## 中英文
 
-中文在根路径（`/`、`/privacy`），英文在 `/en/` 下。中文页在浏览器语言不是中文、且用户没手动切换过时，会自动跳到英文。改文案只改 `packages/ui/content/<id>.js` 和 `products.js`，两种语言写在一起。
+中文在根路径（`/loopback`），英文在 `/en/` 下（`/en/loopback`）。中文页在浏览器语言不是中文、且用户没手动切换过时，会自动跳到英文。
 
-## 新增一个产品
+## 新增一个没有网页版的产品
 
-1. `packages/ui/products.js` 加一条
-2. 在 `packages/ui/content/<id>.js` 写文案，在 `packages/ui/demos/` 写手机演示，并在 `ProductLanding`、`ProductPrivacy`、`ProductSupport` 里登记
-3. 复制 `apps/loopback` 为 `apps/<id>`，改 `package.json` 的 `name`、`astro.config.mjs` 的 `site` 和端口、页面里的 `id` 和演示组件，换 `public/icon.png`
-4. 官网图标放到 `apps/home/public/icons/<id>.png`
+1. `src/products.js` 加一条（不写 `website`）
+2. `src/content/<id>.js` 写文案，`src/demos/` 写演示，在 `ProductLanding`、`ProductPrivacy`、`ProductSupport` 里登记
+3. 图标放到 `public/icons/<id>.png`
+
+页面路由会自动生成，不用新建页面文件。
 
 ## 本地开发
 
 ```bash
 npm install
-npm run dev            # 官网 http://localhost:4321
-npm run dev:loopback   # 落地页 http://localhost:4322
-npm run build          # 构建全部
+npm run dev     # http://localhost:4321
+npm run build
 ```
-
-## 部署
-
-每个 `apps/*` 在 Vercel 上是一个独立项目，Root Directory 填对应目录，绑各自的域名；DNS 在 Cloudflare，灰云 CNAME 到 Vercel。

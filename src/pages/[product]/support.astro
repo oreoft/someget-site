@@ -1,0 +1,12 @@
+---
+import ProductSupport from '../../components/ProductSupport.astro';
+import { landingProducts } from '../../products.js';
+
+export function getStaticPaths() {
+  return landingProducts.map((p) => ({ params: { product: p.id } }));
+}
+
+const { product } = Astro.params;
+---
+
+<ProductSupport id={product} lang="zh" />

@@ -1,0 +1,12 @@
+---
+import ProductPrivacy from '../../components/ProductPrivacy.astro';
+import { landingProducts } from '../../products.js';
+
+export function getStaticPaths() {
+  return landingProducts.map((p) => ({ params: { product: p.id } }));
+}
+
+const { product } = Astro.params;
+---
+
+<ProductPrivacy id={product} lang="zh" />

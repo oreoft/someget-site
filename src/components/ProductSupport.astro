@@ -1,0 +1,106 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import SiteHeader from './SiteHeader.astro';
+import SiteFooter from './SiteFooter.astro';
+import { getProduct, contactEmail } from '../products.js';
+import { ui, localize } from '../i18n.js';
+import loopback from '../content/loopback.js';
+import muninn from '../content/muninn.js';
+import instash from '../content/instash.js';
+
+interface Props {
+  id: string;
+  lang: 'zh' | 'en';
+}
+
+const contents: Record<string, any> = { loopback, muninn, instash };
+const { id, lang } = Astro.props;
+const product = getProduct(id);
+const faq = contents[id][lang].faq;
+const t = ui[lang];
+const subject = encodeURIComponent(`[${product.name}] `);
+---
+
+<BaseLayout lang={lang} title={`${product.name} · ${t.support}`} icon={`/icons/${id}.png`} path={`/${id}/support`}>
+  <SiteHeader lang={lang} path={`/${id}/support`} />
+  <main class="container doc">
+    <a class="mono kicker" href={localize(lang, `/${id}`)}>← {product.name}</a>
+    <h1 class="display">{t.support}</h1>
+
+    <h2 class="section">{t.faq}</h2>
+    {
+      faq.map((f: { q: string; a: string }) => (
+        <details>
+          <summary>{f.q}</summary>
+          <p>{f.a}</p>
+        </details>
+      ))
+    }
+
+    <div class="mail">
+      <h2>{t.stillNeedHelp}</h2>
+      <p>{t.mailNote}</p>
+      <a class="pill pill--accent" href={`mailto:${contactEmail}?subject=${subject}`}>{t.mailUs}: {contactEmail}</a>
+    </div>
+  </main>
+  <SiteFooter lang={lang} productPath={`/${id}`} />
+</BaseLayout>
+
+<style>
+  .doc {
+    max-width: 760px;
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+  .kicker {
+    display: inline-block;
+    margin: 0 0 12px;
+    text-decoration: none;
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(40px, 6vw, 64px);
+  }
+  .section {
+    margin: 48px 0 16px;
+    font-size: 22px;
+  }
+  details {
+    border-top: 1px solid var(--line);
+    padding: 18px 0;
+  }
+  details:last-of-type {
+    border-bottom: 1px solid var(--line);
+  }
+  summary {
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: 600;
+    list-style-position: outside;
+  }
+  details p {
+    margin: 12px 0 0;
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--ink-2);
+  }
+  .mail {
+    margin-top: 56px;
+    padding: 32px;
+    border-radius: 24px;
+    background: var(--surface);
+  }
+  .mail h2 {
+    margin: 0;
+    font-size: 22px;
+  }
+  .mail p {
+    margin: 8px 0 20px;
+    color: var(--ink-2);
+  }
+  .mail .pill {
+    white-space: normal;
+  }
+</style>
