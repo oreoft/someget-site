@@ -24,6 +24,14 @@ export default {
           ],
         },
         {
+          h: '来自 Google 账号的数据',
+          p: [
+            '你用 Google 登录时，我们只请求基本资料权限（openid、email、profile），获得你的 Google 账号标识、名字、邮箱和头像，仅用于创建和识别你的账号、让你登录。',
+            '我们不会把这些数据出售或转交给第三方，不用于广告，也不会让人工查看，除非得到你的明确同意、出于安全需要或法律要求。',
+            '我们对从 Google API 获得的信息的使用和转移，遵守 Google API 服务用户数据政策（https://developers.google.com/terms/api-services-user-data-policy），包括其中的“有限使用”（Limited Use）要求。',
+          ],
+        },
+        {
           h: '每个产品的账号相互独立',
           p: ['你在不同产品里的账号是分开的。一个产品里的账号信息，不会提供给另一个产品使用。'],
         },
@@ -105,6 +113,14 @@ export default {
           h: 'How we use it',
           p: [
             'We use this information only to sign you in, recognize you inside our products, email you verification codes, and detect and stop suspicious attempts on your account.',
+          ],
+        },
+        {
+          h: 'Data from your Google account',
+          p: [
+            'When you sign in with Google, we request only basic profile access (openid, email, profile) and receive your Google account identifier, name, email address and profile picture. We use them only to create and recognize your account and sign you in.',
+            'We do not sell or transfer this data to third parties, use it for advertising, or let people read it, unless you explicitly agree, it is needed for security, or the law requires it.',
+            'Our use and transfer of information received from Google APIs adheres to the Google API Services User Data Policy (https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.',
           ],
         },
         {
