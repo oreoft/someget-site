@@ -78,6 +78,7 @@ img {
   color: var(--bg);
 }
 
+/* 按钮约定：站内跳转用描边按钮 .pill；离开本站去拿产品（App Store 下载、产品官网）用橙色实心 .pill--accent */
 .pill--accent {
   border-color: var(--accent);
   background: var(--accent);
