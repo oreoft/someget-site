@@ -1,0 +1,70 @@
+---
+// 站点级文档页（隐私政策、服务条款），文案在 content/site.js。
+import BaseLayout from './BaseLayout.astro';
+import SiteHeader from './SiteHeader.astro';
+import SiteFooter from './SiteFooter.astro';
+import { ui } from '../i18n.js';
+import site from '../content/site.js';
+
+interface Props {
+  doc: 'privacy' | 'terms';
+  lang: 'zh' | 'en';
+}
+
+const { doc, lang } = Astro.props;
+const t = ui[lang];
+const page = site[lang][doc];
+const title = doc === 'privacy' ? t.privacy : t.terms;
+---
+
+<BaseLayout lang={lang} title={`someget · ${title}`} path={`/${doc}`}>
+  <SiteHeader lang={lang} path={`/${doc}`} />
+  <main class="container doc">
+    <h1 class="display">{title}</h1>
+    <p class="mono updated">{t.updated}: {page.updated}</p>
+    <p class="lead">{page.intro}</p>
+    {
+      page.sections.map((s: { h: string; p: string[] }) => (
+        <section>
+          <h2>{s.h}</h2>
+          {s.p.map((para) => (
+            <p>{para}</p>
+          ))}
+        </section>
+      ))
+    }
+  </main>
+  <SiteFooter lang={lang} />
+</BaseLayout>
+
+<style>
+  .doc {
+    max-width: 760px;
+    padding-top: 64px;
+    padding-bottom: 64px;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(40px, 6vw, 64px);
+  }
+  .updated {
+    margin: 16px 0 0;
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+  .lead {
+    margin: 32px 0 8px;
+    font-size: 18px;
+    line-height: 1.8;
+  }
+  h2 {
+    margin: 40px 0 8px;
+    font-size: 20px;
+  }
+  section p {
+    margin: 8px 0 0;
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--ink-2);
+  }
+</style>

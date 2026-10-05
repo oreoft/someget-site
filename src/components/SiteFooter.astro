@@ -38,6 +38,8 @@ const title = productName ? t.helpTitle.replace('{name}', productName) : t.conta
       <span>© {year} someget</span>
       {productPath && <a href={localize(lang, `${productPath}/support`)}>{t.support}</a>}
       {productPath && <a href={localize(lang, `${productPath}/privacy`)}>{t.privacy}</a>}
+      {!productPath && <a href={localize(lang, '/privacy')}>{t.privacy}</a>}
+      {!productPath && <a href={localize(lang, '/terms')}>{t.terms}</a>}
     </div>
   </div>
 </footer>
