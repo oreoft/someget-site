@@ -66,10 +66,6 @@ export default {
           ],
         },
         {
-          h: '本机服务',
-          p: ['为了支持快捷指令，InStash 会在你的设备上启动一个只对本机开放的服务，它不接受来自网络的连接。'],
-        },
-        {
           h: '儿童隐私',
           p: ['InStash 不面向 13 岁以下儿童，也不收集任何人的个人信息。'],
         },
@@ -145,10 +141,6 @@ export default {
             'Notes are stored on your devices. With iCloud sync on, they are kept in your own private iCloud storage, protected by Apple, and we cannot access them.',
             'You can turn off sync in Settings at any time, after which notes stay only on that device.',
           ],
-        },
-        {
-          h: 'On-device service',
-          p: ['To support Shortcuts, InStash runs a small service that is only reachable from your own device and accepts no connections from the network.'],
         },
         {
           h: "Children's privacy",

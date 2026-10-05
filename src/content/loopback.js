@@ -47,7 +47,7 @@ export default {
       },
       {
         q: '换新手机怎么迁移？',
-        a: '在设置里导出配置，在新手机上导入即可。导出文件里的密码只做了混淆、没有加密，请像对待密码一样保管它，用完删掉。',
+        a: '在设置里导出配置，在新手机上导入即可。导出文件包含服务器的登录信息，请妥善保管，用完删掉。',
       },
       {
         q: '某个网页打不开怎么办？',
@@ -77,7 +77,7 @@ export default {
         },
         {
           h: '导出的备份文件',
-          p: ['导出的配置文件包含你的服务器信息，其中的密码和私钥只做了混淆，并未加密。请妥善保管，不要分享给他人。'],
+          p: ['导出的配置文件包含你的服务器和登录信息，请妥善保管，不要分享给他人。'],
         },
         {
           h: '儿童隐私',
@@ -138,7 +138,7 @@ export default {
       },
       {
         q: 'How do I move to a new phone?',
-        a: 'Export your setup in Settings and import it on the new phone. Passwords in the export are obfuscated, not encrypted, so treat the file like a password and delete it when you are done.',
+        a: 'Export your setup in Settings and import it on the new phone. The file contains your server sign-in details, so keep it safe and delete it when you are done.',
       },
       {
         q: 'A page will not load. What should I check?',
@@ -168,7 +168,7 @@ export default {
         },
         {
           h: 'Exported backups',
-          p: ['An exported setup file contains your server details. Passwords and private keys in it are obfuscated, not encrypted. Keep it safe and do not share it.'],
+          p: ['An exported setup file contains your server and sign-in details. Keep it safe and do not share it.'],
         },
         {
           h: "Children's privacy",

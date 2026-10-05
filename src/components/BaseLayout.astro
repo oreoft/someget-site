@@ -13,6 +13,8 @@ interface Props {
 
 const { lang, title, description = '', icon, path = '/' } = Astro.props;
 const site = Astro.site ? Astro.site.toString().replace(/\/$/, '') : '';
+const canonical = `${site}${localize(lang, path)}`;
+const ogImage = icon ? `${site}${icon}` : undefined;
 ---
 
 <!doctype html>
@@ -23,19 +25,28 @@ const site = Astro.site ? Astro.site.toString().replace(/\/$/, '') : '';
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
     {description && <meta property="og:description" content={description} />}
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
     <meta property="og:title" content={title} />
+    <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'en_US'} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content="summary" />
     {icon && <link rel="icon" href={icon} />}
     {icon && <link rel="apple-touch-icon" href={icon} />}
     <link rel="alternate" hreflang="zh" href={`${site}${localize('zh', path)}`} />
     <link rel="alternate" hreflang="en" href={`${site}${localize('en', path)}`} />
+    <link rel="alternate" hreflang="x-default" href={`${site}${localize('zh', path)}`} />
     {
       lang === 'zh' && (
         <script is:inline define:vars={{ enPath: localize('en', path) }}>
-          // 中文页：浏览器不是中文、且用户没手动选过语言时，跳到英文版
+          // 中文页：浏览器不是中文、且用户没手动选过语言时，跳到英文版。
+          // 搜索引擎爬虫不跳，否则中文页会因为爬虫是英文环境而收录不到。
           try {
             var pref = localStorage.getItem('someget-lang');
             var nav = (navigator.languages && navigator.languages[0]) || navigator.language || '';
-            if (!pref && !/^zh/i.test(nav)) location.replace(enPath);
+            var bot = navigator.webdriver || /bot|crawl|spider|slurp|preview/i.test(navigator.userAgent);
+            if (!pref && !bot && !/^zh/i.test(nav)) location.replace(enPath);
           } catch (e) {}
         </script>
       )

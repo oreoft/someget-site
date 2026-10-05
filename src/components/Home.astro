@@ -31,7 +31,7 @@ const productHref = (p: (typeof products)[number]) => (p.website ? p.url : local
 const heroIcons = ['instash', 'muninn', 'loopback'];
 ---
 
-<BaseLayout lang={lang} title={copy.title} description={copy.description} icon="/icons/muninn.png">
+<BaseLayout lang={lang} title={copy.title} description={copy.description} icon="/icons/muninn.png" path="/">
   <SiteHeader lang={lang} />
   <main class="container">
     <section class="hero">
@@ -53,7 +53,7 @@ const heroIcons = ['instash', 'muninn', 'loopback'];
             {p.website ? (
               <div class="app-icon mono mark">oL</div>
             ) : (
-              <img class="app-icon" src={`/icons/${p.id}.png`} alt={`${p.name}`} width="112" height="112" />
+              <img class="app-icon" src={`/icons/${p.id}.png`} alt={`${p.name}`} width="112" height="112" loading="lazy" decoding="async" />
             )}
             <div class="text">
               <h2 class="display">
