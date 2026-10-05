@@ -91,13 +91,13 @@ img {
 }
 
 /* 宽屏时内容放在一张"纸"上，外圈是稍深的底色，两边留白变成画框 */
-@media (min-width: 1400px) {
+@media (min-width: 1280px) {
   html,
   body {
     background: #e4e3dc;
   }
   .page {
-    max-width: 1320px;
+    max-width: var(--container);
     margin: 40px auto;
     background: var(--bg);
     border-radius: 24px;
