@@ -8,7 +8,7 @@
   --accent: #e5532d;
   --surface: #ffffff;
 
-  --font-display: 'Bricolage Grotesque', 'Noto Sans SC', system-ui, sans-serif;
+  --font-display: 'Geist', 'Noto Sans SC', system-ui, sans-serif;
   --font-body: 'Noto Sans SC', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
@@ -49,8 +49,9 @@ img {
 
 .display {
   font-family: var(--font-display);
-  font-weight: 800;
-  letter-spacing: -0.04em;
+  /* Geist 只加载 700，英文用 700；中文回落到思源黑体 900 */
+  font-weight: 900;
+  letter-spacing: -0.035em;
 }
 
 .mono {
