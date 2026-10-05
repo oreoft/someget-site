@@ -13,7 +13,7 @@
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   --radius-icon: 22.5%;
-  --container: 1440px;
+  --container: 1200px;
   --gutter: clamp(24px, 5vw, 72px);
 }
 
