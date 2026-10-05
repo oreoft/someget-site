@@ -38,8 +38,9 @@ const title = productName ? t.helpTitle.replace('{name}', productName) : t.conta
       <span>© {year} someget</span>
       {productPath && <a href={localize(lang, `${productPath}/support`)}>{t.support}</a>}
       {productPath && <a href={localize(lang, `${productPath}/privacy`)}>{t.privacy}</a>}
-      {!productPath && <a href={localize(lang, '/privacy')}>{t.privacy}</a>}
-      {!productPath && <a href={localize(lang, '/terms')}>{t.terms}</a>}
+      {/* 站点级政策统一指向根路径：Google 审核要求首页链到登记的那个网址，非中文访客会被自动带到英文版 */}
+      {!productPath && <a href="/privacy">{t.privacy}</a>}
+      {!productPath && <a href="/terms">{t.terms}</a>}
     </div>
   </div>
 </footer>
