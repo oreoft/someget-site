@@ -1,6 +1,6 @@
 # someget-site
 
-someget 的官网 `someget.xyz`，以及没有网页版的产品的落地页。Astro 静态站，部署为一个站点。
+someget 的官网 `www.someget.xyz`（根域名 `someget.xyz` 308 跳转到 www），以及没有网页版的产品的落地页。Astro 静态站，部署为一个站点。
 
 ## 产品网址规则
 
@@ -46,3 +46,7 @@ npm install
 npm run dev     # http://localhost:4321
 npm run build
 ```
+
+## 许可
+
+代码以 MIT 协议开源，见 `LICENSE`。产品名称、图标、文案和截图等品牌素材保留所有权利，不在 MIT 授权范围内。
