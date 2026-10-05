@@ -34,7 +34,7 @@ export default {
         {
           h: '第三方服务',
           p: [
-            '登录服务运行在 Cloudflare 上，数据也存储在 Cloudflare。你选择用 Apple、Google 或 GitHub 登录时，登录过程由对应平台处理，并适用它们各自的隐私政策。',
+            '登录服务运行在我们的服务器上，数据也存储在我们的服务器上。你选择用 Apple、Google 或 GitHub 登录时，登录过程由对应平台处理，并适用它们各自的隐私政策。',
           ],
         },
         {
@@ -117,7 +117,7 @@ export default {
         {
           h: 'Third-party services',
           p: [
-            'The sign-in service runs on Cloudflare, which also stores its data. When you choose to sign in with Apple, Google or GitHub, that provider handles its part of the sign-in under its own privacy policy.',
+            'The sign-in service runs on our servers, and its data is stored there too. When you choose to sign in with Apple, Google or GitHub, that provider handles its part of the sign-in under its own privacy policy.',
           ],
         },
         {
