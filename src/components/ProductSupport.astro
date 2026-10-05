@@ -2,7 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import SiteHeader from './SiteHeader.astro';
 import SiteFooter from './SiteFooter.astro';
-import { getProduct, contactEmail } from '../products.js';
+import { getProduct } from '../products.js';
 import { ui, localize } from '../i18n.js';
 import loopback from '../content/loopback.js';
 import muninn from '../content/muninn.js';
@@ -18,11 +18,10 @@ const { id, lang } = Astro.props;
 const product = getProduct(id);
 const faq = contents[id][lang].faq;
 const t = ui[lang];
-const subject = encodeURIComponent(`[${product.name}] `);
 ---
 
 <BaseLayout lang={lang} title={`${product.name} · ${t.support}`} icon={`/icons/${id}.png`} path={`/${id}/support`}>
-  <SiteHeader lang={lang} path={`/${id}/support`} />
+  <SiteHeader lang={lang} path={`/${id}/support`} productPath={`/${id}`} />
   <main class="container doc">
     <a class="mono kicker" href={localize(lang, `/${id}`)}>← {product.name}</a>
     <h1 class="display">{t.support}</h1>
@@ -37,13 +36,8 @@ const subject = encodeURIComponent(`[${product.name}] `);
       ))
     }
 
-    <div class="mail">
-      <h2>{t.stillNeedHelp}</h2>
-      <p>{t.mailNote}</p>
-      <a class="pill pill--accent" href={`mailto:${contactEmail}?subject=${subject}`}>{t.mailUs}: {contactEmail}</a>
-    </div>
   </main>
-  <SiteFooter lang={lang} productPath={`/${id}`} />
+  <SiteFooter lang={lang} productPath={`/${id}`} productName={product.name} />
 </BaseLayout>
 
 <style>
@@ -85,22 +79,5 @@ const subject = encodeURIComponent(`[${product.name}] `);
     font-size: 16px;
     line-height: 1.8;
     color: var(--ink-2);
-  }
-  .mail {
-    margin-top: 56px;
-    padding: 32px;
-    border-radius: 24px;
-    background: var(--surface);
-  }
-  .mail h2 {
-    margin: 0;
-    font-size: 22px;
-  }
-  .mail p {
-    margin: 8px 0 20px;
-    color: var(--ink-2);
-  }
-  .mail .pill {
-    white-space: normal;
   }
 </style>

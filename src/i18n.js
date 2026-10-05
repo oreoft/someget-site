@@ -24,6 +24,12 @@ export const ui = {
     mailUs: '发邮件给我们',
     mailNote: '通常 1～2 个工作日内回复。',
     back: '返回',
+    contactTitle: '有问题，或者只是想打个招呼？',
+    helpTitle: '用 {name} 遇到问题？',
+    contactSub: '发邮件给我们，通常 1～2 个工作日内回复。',
+    copyEmail: '复制邮箱',
+    copied: '已复制',
+    allProducts: '全部产品',
   },
   en: {
     htmlLang: 'en',
@@ -46,6 +52,12 @@ export const ui = {
     mailUs: 'Email us',
     mailNote: 'We usually reply within one or two business days.',
     back: 'Back',
+    contactTitle: 'Questions, or just want to say hi?',
+    helpTitle: 'Need help with {name}?',
+    contactSub: 'Email us. We usually reply within one or two business days.',
+    copyEmail: 'Copy email',
+    copied: 'Copied',
+    allProducts: 'All products',
   },
 };
 

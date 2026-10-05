@@ -4,40 +4,126 @@ import { ui, localize } from '../i18n.js';
 
 interface Props {
   lang: 'zh' | 'en';
-  // 落地页传产品路径（如 /loopback），页脚会带上该产品的支持页和隐私政策链接
+  // 落地页传产品路径（如 /loopback）和产品名，联系区会换成该产品的帮助入口
   productPath?: string;
+  productName?: string;
 }
 
-const { lang, productPath } = Astro.props;
+const { lang, productPath, productName } = Astro.props;
 const t = ui[lang];
 const year = new Date().getFullYear();
+const title = productName ? t.helpTitle.replace('{name}', productName) : t.contactTitle;
 ---
 
-<footer id="contact" class="container">
-  <div class="foot">
+<footer id="contact">
+  <section class="band">
+  <div class="container contact">
+    <div>
+      <h2 class="display">{title}</h2>
+      <p>{t.contactSub}</p>
+    </div>
+    <div class="actions">
+      <a class="mail display" href={`mailto:${contactEmail}`}>{contactEmail}</a>
+      <div class="row">
+        <button type="button" class="pill copy" data-copy={contactEmail} data-done={t.copied}>{t.copyEmail}</button>
+        {productPath && <a class="pill" href={localize(lang, `${productPath}/support`)}>{t.faq} →</a>}
+      </div>
+    </div>
+  </div>
+  </section>
+
+  <div class="container foot">
     <span class="logo display">someget<span>.</span></span>
     <div class="links">
       <span>© {year} someget</span>
-      <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
       {productPath && <a href={localize(lang, `${productPath}/support`)}>{t.support}</a>}
       {productPath && <a href={localize(lang, `${productPath}/privacy`)}>{t.privacy}</a>}
     </div>
   </div>
 </footer>
 
+<script>
+  document.querySelectorAll<HTMLButtonElement>('button[data-copy]').forEach((btn) => {
+    const label = btn.textContent;
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy ?? '');
+        btn.textContent = btn.dataset.done ?? label;
+        setTimeout(() => (btn.textContent = label), 1800);
+      } catch {}
+    });
+  });
+</script>
+
 <style>
+  .band {
+    margin-top: 48px;
+    background: var(--ink);
+    color: var(--bg);
+  }
+  .contact {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 32px 48px;
+    align-items: end;
+    padding-top: 72px;
+    padding-bottom: 72px;
+  }
+  .contact h2 {
+    margin: 0;
+    font-size: clamp(32px, 4.5vw, 56px);
+    line-height: 1.05;
+  }
+  .contact p {
+    margin: 16px 0 0;
+    font-size: 17px;
+    color: #b9bbc2;
+  }
+  .band .pill {
+    border-color: var(--bg);
+  }
+  .band .pill:hover {
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .mail {
+    font-size: clamp(24px, 3vw, 36px);
+    text-decoration: none;
+    border-bottom: 3px solid var(--accent);
+    line-height: 1.2;
+    word-break: break-all;
+  }
+  .mail:hover {
+    color: var(--accent);
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .copy {
+    color: inherit;
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+  }
   .foot {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
     justify-content: space-between;
     align-items: baseline;
-    padding: 48px 0 56px;
-    border-top: 2px solid var(--ink);
-    margin-top: 32px;
+    padding-top: 32px;
+    padding-bottom: 40px;
   }
   .logo {
-    font-size: 40px;
+    font-size: 32px;
   }
   .logo span {
     color: var(--accent);
@@ -55,5 +141,10 @@ const year = new Date().getFullYear();
   .links a:hover {
     color: var(--ink);
     text-decoration: underline;
+  }
+  @media (max-width: 760px) {
+    .contact {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 </style>

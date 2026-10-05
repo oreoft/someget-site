@@ -5,20 +5,22 @@ interface Props {
   lang: 'zh' | 'en';
   // 当前页面不带语言前缀的路径，用来生成切换语言的链接
   path?: string;
+  // 在产品页里传产品路径（如 /loopback），导航的「联系」换成该产品的「支持」
+  productPath?: string;
 }
 
-const { lang, path = '/' } = Astro.props;
+const { lang, path = '/', productPath } = Astro.props;
 const t = ui[lang];
 const other = lang === 'zh' ? 'en' : 'zh';
 const homeHref = localize(lang, '/');
 ---
 
-<header class="container">
-  <div class="bar">
+<header>
+  <div class="container bar">
     <a class="logo display" href={homeHref}>someget<span>.</span></a>
     <nav>
-      <a href={`${homeHref}#products`}>{t.products}</a>
-      <a href="#contact">{t.contact}</a>
+      <a href={`${homeHref}#products`}>{productPath ? t.allProducts : t.products}</a>
+      {productPath ? <a href={localize(lang, `${productPath}/support`)}>{t.support}</a> : <a href="#contact">{t.contact}</a>}
       <a class="lang" href={localize(other, path)} hreflang={other} data-lang={other}>{t.switchLabel}</a>
     </nav>
   </div>
@@ -41,7 +43,10 @@ const homeHref = localize(lang, '/');
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 28px 0;
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+  header {
     border-bottom: 2px solid var(--ink);
   }
   .logo {

@@ -32,7 +32,7 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
 ---
 
 <BaseLayout lang={lang} title={`${product.name} · ${product[lang].tagline}`} description={product[lang].summary} icon={icon} path={path}>
-  <SiteHeader lang={lang} path={path} />
+  <SiteHeader lang={lang} path={path} productPath={path} />
   <main>
     <section class="container hero">
       <div class="hero-text">
@@ -93,7 +93,7 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
       <a class="pill pill--accent" href={product.storeUrl}>{storeLabel}</a>
     </section>
   </main>
-  <SiteFooter lang={lang} productPath={path} />
+  <SiteFooter lang={lang} productPath={path} productName={product.name} />
 </BaseLayout>
 
 <style>

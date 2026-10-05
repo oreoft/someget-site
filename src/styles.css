@@ -13,7 +13,8 @@
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   --radius-icon: 22.5%;
-  --container: 1200px;
+  --container: 1440px;
+  --gutter: clamp(24px, 5vw, 72px);
 }
 
 *,
@@ -43,7 +44,7 @@ img {
 .container {
   max-width: var(--container);
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 var(--gutter);
 }
 
 .display {

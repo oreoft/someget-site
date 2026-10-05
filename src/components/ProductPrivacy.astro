@@ -21,7 +21,7 @@ const t = ui[lang];
 ---
 
 <BaseLayout lang={lang} title={`${product.name} · ${t.privacy}`} icon={`/icons/${id}.png`} path={`/${id}/privacy`}>
-  <SiteHeader lang={lang} path={`/${id}/privacy`} />
+  <SiteHeader lang={lang} path={`/${id}/privacy`} productPath={`/${id}`} />
   <main class="container doc">
     <a class="mono kicker" href={localize(lang, `/${id}`)}>← {product.name}</a>
     <h1 class="display">{t.privacy}</h1>
@@ -38,7 +38,7 @@ const t = ui[lang];
       ))
     }
   </main>
-  <SiteFooter lang={lang} productPath={`/${id}`} />
+  <SiteFooter lang={lang} productPath={`/${id}`} productName={product.name} />
 </BaseLayout>
 
 <style>
