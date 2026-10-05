@@ -50,11 +50,7 @@ const heroIcons = ['instash', 'muninn', 'loopback'];
         products.map((p, i) => (
           <article class="row">
             <span class="mono num">{String(i + 1).padStart(2, '0')}</span>
-            {p.website ? (
-              <div class="app-icon mono mark">oL</div>
-            ) : (
-              <img class="app-icon" src={`/icons/${p.id}.png`} alt={`${p.name}`} width="112" height="112" loading="lazy" decoding="async" />
-            )}
+            <img class="app-icon" src={`/icons/${p.id}.png`} alt={`${p.name}`} width="112" height="112" loading="lazy" decoding="async" />
             <div class="text">
               <h2 class="display">
                 {p.name} <small>{p.platforms.join(' · ')}</small>
@@ -142,18 +138,9 @@ const heroIcons = ['instash', 'muninn', 'loopback'];
     font-size: 15px;
     color: var(--ink-3);
   }
-  .row img,
-  .mark {
+  .row img {
     width: 112px;
     height: 112px;
-  }
-  .mark {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--ink);
-    color: var(--bg);
-    font-size: 36px;
   }
   .text h2 {
     margin: 0 0 10px;
@@ -187,11 +174,9 @@ const heroIcons = ['instash', 'muninn', 'loopback'];
       grid-template-columns: 72px minmax(0, 1fr);
       gap: 16px 20px;
     }
-    .row img,
-    .mark {
+    .row img {
       width: 72px;
       height: 72px;
-      font-size: 24px;
     }
     .text h2 {
       font-size: 32px;

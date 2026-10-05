@@ -49,7 +49,7 @@ export const products = [
   },
   {
     id: 'overlc',
-    tint: '#16171A',
+    tint: '#F1511B',
     name: 'overLc',
     platforms: ['Web'],
     url: 'https://overlc.someget.xyz',
