@@ -83,7 +83,7 @@ export default {
         {
           h: '第三方服务',
           p: [
-            '我们使用以下服务来运行 Muninn：Supabase（账号与数据库）、Google Cloud（服务器）、Upstash（任务队列），以及一个第三方内容解析服务，它会收到你提交的链接以便取回内容。这些服务只为运行 Muninn 处理数据。',
+            '我们使用云服务商提供的数据库、服务器等基础设施来运行 Muninn，并使用一个第三方内容解析服务，它会收到你提交的链接以便取回内容。这些服务只为运行 Muninn 处理数据。',
           ],
         },
         {
@@ -187,7 +187,7 @@ export default {
         {
           h: 'Third-party services',
           p: [
-            'We run Muninn on Supabase (accounts and database), Google Cloud (servers), Upstash (job queue), and a third-party content parsing service that receives the links you submit in order to fetch their content. These services process data only to run Muninn.',
+            'We run Muninn on infrastructure such as cloud databases and servers from cloud providers, and use a third-party content parsing service that receives the links you submit in order to fetch their content. These services process data only to run Muninn.',
           ],
         },
         {
