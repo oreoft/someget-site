@@ -21,8 +21,10 @@ export const products = [
     id: 'muninn',
     tint: '#8C7EE0',
     name: 'Muninn',
-    platforms: ['iOS'],
+    platforms: ['iOS', 'Android'],
     storeUrl: 'https://apps.apple.com/app/id6757280892',
+    // 安卓安装包直链，文件名带版本号，发新版时改这里
+    androidUrl: 'https://asset-download.someget.xyz/muninn/android/Muninn-2.0.apk',
     zh: {
       tagline: '看过的，都留得住。',
       summary: '粘贴一条链接，Muninn 把推文、视频、帖子的正文和图片取回来，存进你自己的收藏库，随时搜得到。',

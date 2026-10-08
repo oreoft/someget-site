@@ -47,6 +47,7 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
         <p class="sub">{c.heroSub}</p>
         <div class="actions">
           <a class="pill pill--accent" href={product.storeUrl}>{storeLabel}</a>
+          {product.androidUrl && <a class="pill" href={product.androidUrl}>{t.downloadAndroid}</a>}
           <a class="pill" href="#demo">{t.sectionDemo} ↓</a>
         </div>
       </div>
@@ -90,7 +91,10 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
         <h2 class="display">{product.name}</h2>
         <p class="sub">{product[lang].tagline}</p>
       </div>
-      <a class="pill pill--accent" href={product.storeUrl}>{storeLabel}</a>
+      <div class="download-actions">
+        <a class="pill pill--accent" href={product.storeUrl}>{storeLabel}</a>
+        {product.androidUrl && <a class="pill" href={product.androidUrl}>{t.downloadAndroid}</a>}
+      </div>
     </section>
   </main>
   <SiteFooter lang={lang} productPath={path} productName={product.name} />
@@ -255,6 +259,11 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
   }
   .download .sub {
     margin-top: 6px;
+  }
+  .download-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
   }
   @media (max-width: 960px) {
     .features {
