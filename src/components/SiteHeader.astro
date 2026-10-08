@@ -50,6 +50,7 @@ const homeHref = localize(lang, '/');
     border-bottom: 2px solid var(--ink);
   }
   .logo {
+    flex-shrink: 0;
     font-size: 22px;
     text-decoration: none;
   }
@@ -64,6 +65,7 @@ const homeHref = localize(lang, '/');
     font-weight: 600;
   }
   nav a {
+    white-space: nowrap;
     text-decoration: none;
   }
   .lang {
@@ -75,5 +77,30 @@ const homeHref = localize(lang, '/');
   .lang:hover {
     background: var(--ink);
     color: var(--bg);
+  }
+  /* 手机上一行放下 logo + 三个入口：整体收小、间距收紧 */
+  @media (max-width: 560px) {
+    .bar {
+      gap: 12px;
+      padding-top: 16px;
+      padding-bottom: 16px;
+    }
+    .logo {
+      font-size: 19px;
+    }
+    nav {
+      gap: 14px;
+      font-size: 14px;
+    }
+    .lang {
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+  }
+  @media (max-width: 360px) {
+    nav {
+      gap: 10px;
+      font-size: 13px;
+    }
   }
 </style>
