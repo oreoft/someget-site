@@ -28,11 +28,27 @@ const androidIcon =
       <p class="alt">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d={androidIcon} /></svg>
         {t.androidAsk}
-        <a href={product.androidUrl}>{t.getApk} →</a>
+        <a href={product.androidUrl} data-android-latest={product.androidLatest}>{t.getApk} →</a>
       </p>
     )
   }
 </div>
+
+<script>
+  // 安卓下载链接换成最新版：读 latest.json 里的 url，读不到就保留页面里写死的版本链接
+  const links = document.querySelectorAll<HTMLAnchorElement>('a[data-android-latest]');
+  const feed = links[0]?.dataset.androidLatest;
+  if (feed) {
+    fetch(feed)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((latest) => {
+        if (typeof latest?.url === 'string' && latest.url.startsWith('https://')) {
+          links.forEach((a) => (a.href = latest.url));
+        }
+      })
+      .catch(() => {});
+  }
+</script>
 
 <style>
   .cta--hero {
