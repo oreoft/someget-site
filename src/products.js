@@ -25,7 +25,7 @@ export const products = [
     storeUrl: 'https://apps.apple.com/app/id6757280892',
     // 安卓安装包：页面打开时读 androidLatest（发版脚本 --promote 写的 latest.json）里的下载地址，
     // 读不到才用 androidUrl 这个写死的版本链接。所以发安卓新版不用改这里
-    androidUrl: 'https://asset-download.someget.xyz/muninn/android/Muninn-2.0.apk',
+    androidUrl: 'https://asset-download.someget.xyz/muninn/android/Muninn-2.0-9.apk',
     androidLatest: 'https://asset-download.someget.xyz/muninn/android/latest.json',
     zh: {
       tagline: '看过的，都留得住。',
