@@ -57,6 +57,13 @@ const ogImage = icon ? `${site}${icon}` : undefined;
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Geist:wght@700&family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@600&display=swap"
     />
+    <!-- Vercel Web Analytics 和 Speed Insights（需要在 Vercel 项目里开启才生效） -->
+    <script is:inline>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+      window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+    </script>
+    <script is:inline defer src="/_vercel/insights/script.js"></script>
+    <script is:inline defer src="/_vercel/speed-insights/script.js"></script>
   </head>
   <body>
     <div class="page">
