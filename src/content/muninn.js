@@ -55,7 +55,7 @@ export default {
       },
     ],
     privacy: {
-      updated: '2026-10-04',
+      updated: '2026-10-10',
       intro:
         'Muninn 由 someget 开发。为了在你的设备之间同步收藏、并把链接解析成内容，Muninn 需要在服务器上保存你的部分数据。本页说明保存了什么、为什么、以及你如何删除。',
       sections: [
@@ -70,6 +70,12 @@ export default {
           ],
         },
         {
+          h: 'AI 功能',
+          p: [
+            '为了提供 AI 总结、问答、自动标签和智能搜索，我们会把相关收藏内容交给 AI 服务商处理，仅用于为你生成结果。会员的收藏会建立搜索索引，安全保存在我们的数据库里。',
+          ],
+        },
+        {
           h: '使用与订阅记录',
           p: [
             '为了执行免费额度，我们会记录你的解析次数。如果你订阅，我们会保存订阅状态和 Apple 提供的交易编号，用于确认会员权益。付款由 Apple 处理，我们拿不到你的支付信息。',
@@ -78,7 +84,7 @@ export default {
         },
         {
           h: '我们不做的事',
-          p: ['Muninn 没有接入广告、统计分析或崩溃上报工具，不追踪你在其他 App 或网站上的行为，也不出售你的数据。'],
+          p: ['Muninn 的 App 没有接入广告、统计分析或崩溃上报工具；网站只使用不含 Cookie 的匿名访问统计，用来改进体验。我们不追踪你在其他 App 或网站上的行为，也不出售你的数据。'],
         },
         {
           h: '第三方服务',
@@ -159,7 +165,7 @@ export default {
       },
     ],
     privacy: {
-      updated: '2026-10-04',
+      updated: '2026-10-10',
       intro:
         'Muninn is made by someget. To sync your library across devices and turn links into content, Muninn stores some of your data on our servers. This page explains what we keep, why, and how to delete it.',
       sections: [
@@ -174,6 +180,12 @@ export default {
           ],
         },
         {
+          h: 'AI features',
+          p: [
+            'To provide AI summaries, Q&A, auto-tagging and smart search, we send the relevant saved content to AI service providers, used only to generate results for you. For members, saved items are indexed for search and stored securely in our database.',
+          ],
+        },
+        {
           h: 'Usage and subscriptions',
           p: [
             'We count your fetches to apply the free plan limits. If you subscribe, we store your subscription status and the transaction ID provided by Apple to confirm your plan. Payments are handled by Apple; we never see your payment details.',
@@ -182,7 +194,7 @@ export default {
         },
         {
           h: 'What we do not do',
-          p: ['Muninn has no ads, analytics or crash reporting. We do not track you across other apps or websites, and we never sell your data.'],
+          p: ['The Muninn apps have no ads, analytics or crash reporting; the website only uses cookie-free, anonymous visit statistics to improve the experience. We do not track you across other apps or websites, and we never sell your data.'],
         },
         {
           h: 'Third-party services',
