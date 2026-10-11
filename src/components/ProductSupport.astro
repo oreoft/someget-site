@@ -20,7 +20,7 @@ const faq = contents[id][lang].faq;
 const t = ui[lang];
 ---
 
-<BaseLayout lang={lang} title={`${product.name} · ${t.support}`} icon={`/icons/${id}.png`} path={`/${id}/support`}>
+<BaseLayout lang={lang} title={`${product.name} · ${t.support}`} description={lang === 'zh' ? `${product.name} 的常见问题和联系方式。` : `${product.name} FAQ and contact.`} icon={`/icons/${id}.png`} path={`/${id}/support`}>
   <SiteHeader lang={lang} path={`/${id}/support`} productPath={`/${id}`} />
   <main class="container doc">
     <a class="mono kicker" href={localize(lang, `/${id}`)}>← {product.name}</a>

@@ -67,9 +67,11 @@ export const ui = {
   },
 };
 
-// 把站内路径换成对应语言的路径：localize('en', '/privacy') → '/en/privacy'
+// 把站内路径换成对应语言的路径：localize('en', '/privacy') → '/en/privacy/'
+// 统一带结尾斜杠，和实际页面地址、sitemap 一致，避免搜索引擎当成两个页面
 export function localize(lang, path = '/') {
-  if (lang !== 'en') return path;
-  return path === '/' ? '/en/' : `/en${path}`;
+  const p = path.endsWith('/') ? path : `${path}/`;
+  if (lang !== 'en') return p;
+  return p === '/' ? '/en/' : `/en${p}`;
 }
 

@@ -17,7 +17,7 @@ const page = site[lang][doc];
 const title = doc === 'privacy' ? t.privacy : t.terms;
 ---
 
-<BaseLayout lang={lang} title={`someget · ${title}`} path={`/${doc}`}>
+<BaseLayout lang={lang} title={`someget · ${title}`} description={lang === 'zh' ? `someget 网站及旗下产品的${title}。` : `${title} for someget and its products.`} icon="/favicon.svg" path={`/${doc}`}>
   <SiteHeader lang={lang} path={`/${doc}`} />
   <main class="container doc">
     <h1 class="display">{title}</h1>

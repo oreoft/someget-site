@@ -20,7 +20,7 @@ const policy = contents[id][lang].privacy;
 const t = ui[lang];
 ---
 
-<BaseLayout lang={lang} title={`${product.name} · ${t.privacy}`} icon={`/icons/${id}.png`} path={`/${id}/privacy`}>
+<BaseLayout lang={lang} title={`${product.name} · ${t.privacy}`} description={lang === 'zh' ? `${product.name} 的隐私政策，说明 App 如何处理你的数据。` : `How ${product.name} handles your data.`} icon={`/icons/${id}.png`} path={`/${id}/privacy`}>
   <SiteHeader lang={lang} path={`/${id}/privacy`} productPath={`/${id}`} />
   <main class="container doc">
     <a class="mono kicker" href={localize(lang, `/${id}`)}>← {product.name}</a>
