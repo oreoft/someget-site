@@ -32,7 +32,14 @@ const icon = `/icons/${id}.png`;
 const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.download;
 ---
 
-<BaseLayout lang={lang} title={`${product.name} · ${product[lang].tagline}`} description={product[lang].summary} icon={icon} path={path}>
+<BaseLayout
+  lang={lang}
+  title={`${product.name} · ${product[lang].tagline}`}
+  description={product[lang].summary}
+  icon={icon}
+  path={path}
+  movedTo={product.website ? { zh: `${product.url}/`, en: `${product.url}/en` } : undefined}
+>
   <SiteHeader lang={lang} path={path} productPath={path} />
   <main>
     <section class="container hero">

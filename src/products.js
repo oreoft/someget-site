@@ -27,6 +27,12 @@ export const products = [
     // 读不到才用 androidUrl 这个写死的版本链接。所以发安卓新版不用改这里
     androidUrl: 'https://asset-download.someget.xyz/muninn/android/Muninn-2.0-9.apk',
     androidLatest: 'https://asset-download.someget.xyz/muninn/android/latest.json',
+    // 2026-10 起有了自己的网页版和官网：入口和搜索引擎都指过去。本站的 /muninn 落地页保留（老链接还能打开），
+    // 但规范网址指向新站、不进站点地图；/muninn/privacy、/muninn/support 照常（App Store 填的是这两个地址）
+    url: 'https://muninn.someget.xyz',
+    urlEn: 'https://muninn.someget.xyz/en',
+    website: true,
+    keepLanding: true,
     zh: {
       tagline: '看过的，都留得住。',
       summary: '粘贴一条链接，Muninn 把推文、视频、帖子的正文和图片取回来，存进你自己的收藏库，随时搜得到。',
@@ -77,5 +83,8 @@ export function getProduct(id) {
   return p;
 }
 
-// 在本站有落地页的产品（没有自己网页版的）
-export const landingProducts = products.filter((p) => !p.website);
+// 在本站有落地页的产品（没有自己网页版的，加上迁出去但保留老落地页的）
+export const landingProducts = products.filter((p) => !p.website || p.keepLanding);
+
+// 已经迁到自己官网、本站只是保留的落地页路径（不进站点地图）
+export const movedLandingPaths = products.filter((p) => p.website && p.keepLanding).map((p) => p.id);

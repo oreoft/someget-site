@@ -27,7 +27,8 @@ const copy = {
 }[lang];
 
 // 有网页版的产品外链到它的子域名，其余链到本站落地页（英文页带 /en 前缀）
-const productHref = (p: (typeof products)[number]) => (p.website ? p.url : localize(lang, `/${p.id}`));
+const productHref = (p: (typeof products)[number]) =>
+  p.website ? (lang === 'en' && 'urlEn' in p ? p.urlEn : p.url) : localize(lang, `/${p.id}`);
 const heroIcons = ['instash', 'muninn', 'loopback'];
 ---
 

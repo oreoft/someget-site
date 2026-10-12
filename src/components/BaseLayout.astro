@@ -9,11 +9,13 @@ interface Props {
   icon?: string;
   // 当前页面不带语言前缀的路径，用来生成另一种语言的链接
   path?: string;
+  // 内容已经搬到别的网站：规范网址和语言版本指过去（{ zh, en } 两个完整网址）
+  movedTo?: { zh: string; en: string };
 }
 
-const { lang, title, description = '', icon, path = '/' } = Astro.props;
+const { lang, title, description = '', icon, path = '/', movedTo } = Astro.props;
 const site = Astro.site ? Astro.site.toString().replace(/\/$/, '') : '';
-const canonical = `${site}${localize(lang, path)}`;
+const canonical = movedTo ? movedTo[lang] : `${site}${localize(lang, path)}`;
 const ogImage = icon ? `${site}${icon}` : undefined;
 ---
 
@@ -36,9 +38,9 @@ const ogImage = icon ? `${site}${icon}` : undefined;
     <meta name="baidu-site-verification" content="codeva-9vS1Wr5eGV" />
     {icon && <link rel="icon" href={icon} />}
     {icon && <link rel="apple-touch-icon" href={icon} />}
-    <link rel="alternate" hreflang="zh" href={`${site}${localize('zh', path)}`} />
-    <link rel="alternate" hreflang="en" href={`${site}${localize('en', path)}`} />
-    <link rel="alternate" hreflang="x-default" href={`${site}${localize('zh', path)}`} />
+    <link rel="alternate" hreflang="zh" href={movedTo ? movedTo.zh : `${site}${localize('zh', path)}`} />
+    <link rel="alternate" hreflang="en" href={movedTo ? movedTo.en : `${site}${localize('en', path)}`} />
+    <link rel="alternate" hreflang="x-default" href={movedTo ? movedTo.zh : `${site}${localize('zh', path)}`} />
     {
       lang === 'zh' && (
         <script is:inline define:vars={{ enPath: localize('en', path) }}>
