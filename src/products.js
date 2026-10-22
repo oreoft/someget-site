@@ -3,6 +3,22 @@
 // 没有网页版的产品，落地页就在本站 someget.xyz/<id>。以后有了网页版再迁出去。
 export const products = [
   {
+    id: 'tlbox',
+    tint: '#1F7A5A',
+    name: 'tlbox',
+    platforms: ['Web', 'Windows'],
+    url: 'https://tlbox.someget.xyz',
+    website: true,
+    zh: {
+      tagline: '让 AI 住进你常用的聊天。',
+      summary: '把一个懂上下文、能干活的 AI 助手接进微信、QQ、飞书、Slack，群里 @ 它、私聊找它都行；Claude、Codex 这些 Agent 也能用命令行替你管好它。',
+    },
+    en: {
+      tagline: 'An AI assistant that lives in your chats.',
+      summary: 'Bring a context-aware AI assistant that gets things done into WeChat, QQ, Feishu and Slack. Mention it in a group or message it directly, and let agents like Claude and Codex manage it from the command line.',
+    },
+  },
+  {
     id: 'loopback',
     tint: '#1B3F6B',
     name: 'Loopback',
