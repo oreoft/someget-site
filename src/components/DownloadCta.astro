@@ -20,7 +20,13 @@ const androidIcon =
 
 <div class:list={['cta', { 'cta--hero': showDemo }]}>
   <div class="row">
-    <a class="pill pill--accent dl" href={product.storeUrl}><svg viewBox="0 0 24 24" aria-hidden="true"><path d={appleIcon} /></svg>{storeLabel}</a>
+    {
+      product.comingSoon ? (
+        <span class="pill pill--accent dl soon" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d={appleIcon} /></svg>{t.comingSoon}</span>
+      ) : (
+        <a class="pill pill--accent dl" href={product.storeUrl}><svg viewBox="0 0 24 24" aria-hidden="true"><path d={appleIcon} /></svg>{storeLabel}</a>
+      )
+    }
     {showDemo && <a class="pill" href="#demo">{t.sectionDemo} ↓</a>}
   </div>
   {
@@ -61,6 +67,12 @@ const androidIcon =
   }
   .dl {
     gap: 8px;
+  }
+  /* 还没发布的产品：按钮占位，不可点 */
+  .soon {
+    opacity: 0.55;
+    cursor: default;
+    pointer-events: none;
   }
   svg {
     width: 18px;

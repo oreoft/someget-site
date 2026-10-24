@@ -19,6 +19,22 @@ export const products = [
     },
   },
   {
+    id: 'raiju',
+    tint: '#FF6A13',
+    name: 'Raiju',
+    platforms: ['macOS'],
+    // 官网下载版（Developer ID），还没发布：没有 storeUrl，下载按钮显示「即将推出」。发布后填 downloadUrl
+    comingSoon: true,
+    zh: {
+      tagline: '画一笔，就办到。',
+      summary: '原生 Apple 芯片的鼠标手势工具：按住右键画一道轨迹，松开就执行对应的快捷键。兼容 WGestures 配置，一键迁移。',
+    },
+    en: {
+      tagline: 'One stroke, done.',
+      summary: 'A mouse gesture tool native to Apple silicon: hold the right button, draw a stroke, and let go to fire its shortcut. Works with your WGestures settings, moved over in one click.',
+    },
+  },
+  {
     id: 'blink',
     tint: '#F0832E',
     name: 'Blink',

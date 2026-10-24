@@ -1,0 +1,576 @@
+---
+// Raiju 演示：在 Mac 屏幕上按住鼠标（或手指）画一道轨迹，松开后识别成预设手势之一，
+// 显示手势名和快捷键，并让浏览器窗口做出对应动作（左右切换标签页、最大化、最小化、关标签页）。
+// 识别方式和 Raiju 本身一致：按弧长重采样 → 平移到重心、按包围盒长边缩放 → 比逐点平均距离。
+interface Props {
+  lang: 'zh' | 'en';
+}
+
+const { lang } = Astro.props;
+const zh = lang === 'zh';
+// 模板用屏幕坐标（y 向下）；name 是手势名，short 是图例里放不下全名时的短名，keys 是对应快捷键
+const gestures = [
+  { id: 'prev', keys: '⌃⇧⇥', name: zh ? '上一个标签页' : 'Previous tab', short: zh ? '上个标签' : 'Prev tab', path: [[1, 0], [0, 0]] },
+  { id: 'next', keys: '⌃⇥', name: zh ? '下一个标签页' : 'Next tab', short: zh ? '下个标签' : 'Next tab', path: [[0, 0], [1, 0]] },
+  { id: 'maximize', keys: '⌃⌘F', name: zh ? '最大化' : 'Maximize', path: [[0, 1], [0, 0]] },
+  { id: 'minimize', keys: '⌘M', name: zh ? '最小化' : 'Minimize', path: [[0, 0], [0, 1]] },
+  // 倒写的 L（┐）：先往右，再往下
+  { id: 'close', keys: '⌘W', name: zh ? '关闭标签页' : 'Close tab', path: [[0, 0], [0.7, 0], [0.7, 1]] },
+];
+// 图例小图标：把手势轨迹画进 12×12 的格子，起点画圆点、终点画箭头，和画手势时的方向一致
+const icon = (path: number[][]) => {
+  const xs = path.map((p) => p[0]);
+  const ys = path.map((p) => p[1]);
+  const side = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) || 1;
+  const ox = (side - (Math.max(...xs) - Math.min(...xs))) / 2 - Math.min(...xs);
+  const oy = (side - (Math.max(...ys) - Math.min(...ys))) / 2 - Math.min(...ys);
+  const pts = path.map(([x, y]) => [2 + ((x + ox) / side) * 8, 2 + ((y + oy) / side) * 8]);
+  const [ax, ay] = pts[pts.length - 2];
+  const [bx, by] = pts[pts.length - 1];
+  const a = Math.atan2(by - ay, bx - ax);
+  const head = [a + 2.5, a - 2.5].map((t) => `M${bx + 3 * Math.cos(t)} ${by + 3 * Math.sin(t)}L${bx} ${by}`).join('');
+  return { line: `M${pts.map((p) => p.join(' ')).join('L')}${head}`, start: pts[0] };
+};
+
+// 默认开着 4 个标签页：标签上显示名字，地址栏显示网址
+const base = zh ? 'someget.xyz' : 'someget.xyz/en';
+const pages = [
+  { label: 'someget', url: base },
+  { label: 'Raiju', url: `${base}/raiju` },
+  { label: 'Blink', url: `${base}/blink` },
+  { label: 'Muninn', url: `${base}/muninn` },
+];
+const s = zh
+  ? { start: '按住鼠标，在屏幕上画一笔', miss: '没认出来，换个方向再画一次', short: '再画长一点' }
+  : { start: 'Hold the mouse button and draw', miss: 'No match. Try another stroke', short: 'Draw a little longer' };
+---
+
+<div
+  class="rj"
+  data-raiju-demo
+  data-gestures={JSON.stringify(gestures.map(({ id, keys, name, path }) => ({ id, keys, name, path })))}
+  data-pages={JSON.stringify(pages)}
+  data-miss={s.miss}
+  data-short={s.short}
+>
+  <div class="menubar">
+    <b>Safari</b>
+    <img class="tray" src="/icons/raiju-dark.png" alt="" width="14" height="14" />
+  </div>
+
+  <div class="desk">
+    <div class="win">
+      <div class="title">
+        <i></i><i></i><i></i>
+        <div class="tabs">{pages.map((p, i) => <span class:list={['tab', { on: i === 0 }]}>{p.label}</span>)}</div>
+      </div>
+      <div class="bar"><span class="url">{pages[0].url}</span></div>
+      <div class="view"><span class="hero"></span><span></span><span></span><span class="short"></span></div>
+    </div>
+  </div>
+
+  <canvas class="pad" aria-label={s.start}></canvas>
+
+  <div class="hud" aria-live="polite"><b class="hud-name"></b><kbd class="hud-keys"></kbd></div>
+  <p class="status">{s.start}</p>
+
+  <ul class="legend">
+    {
+      gestures.map((g) => (
+        <li data-g={g.id}>
+          <svg class="arrow" viewBox="0 0 12 12" aria-hidden="true">
+            <path d={icon(g.path).line} />
+            <circle cx={icon(g.path).start[0]} cy={icon(g.path).start[1]} r="1.4" />
+          </svg>
+          {g.short ?? g.name}
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<script>
+  type Pt = { x: number; y: number };
+  const N = 32;
+  const ACCEPT = 0.24;
+  const TRAIL = '#FF6A13';
+
+  const length = (p: Pt[]) => p.slice(1).reduce((a, q, i) => a + Math.hypot(q.x - p[i].x, q.y - p[i].y), 0);
+
+  // 按弧长等距重采样成 n 个点
+  function resample(pts: Pt[], n: number): Pt[] {
+    const step = length(pts) / (n - 1);
+    if (!step) return Array.from({ length: n }, () => pts[0]);
+    const out = [pts[0]];
+    let prev = pts[0];
+    let acc = 0;
+    for (let i = 1; i < pts.length && out.length < n; ) {
+      const cur = pts[i];
+      const d = Math.hypot(cur.x - prev.x, cur.y - prev.y);
+      if (d > 0 && acc + d >= step) {
+        const t = (step - acc) / d;
+        prev = { x: prev.x + t * (cur.x - prev.x), y: prev.y + t * (cur.y - prev.y) };
+        out.push(prev);
+        acc = 0;
+      } else {
+        acc += d;
+        prev = cur;
+        i++;
+      }
+    }
+    while (out.length < n) out.push(pts[pts.length - 1]);
+    return out;
+  }
+
+  // 平移到重心，按包围盒长边等比缩放（保留长宽比，横线竖线才分得开）
+  function normalize(pts: Pt[]): Pt[] {
+    const cx = pts.reduce((a, p) => a + p.x, 0) / pts.length;
+    const cy = pts.reduce((a, p) => a + p.y, 0) / pts.length;
+    const xs = pts.map((p) => p.x);
+    const ys = pts.map((p) => p.y);
+    const side = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) || 1;
+    return pts.map((p) => ({ x: (p.x - cx) / side, y: (p.y - cy) / side }));
+  }
+
+  const distance = (a: Pt[], b: Pt[]) => a.reduce((s, p, i) => s + Math.hypot(p.x - b[i].x, p.y - b[i].y), 0) / a.length;
+
+  document.querySelectorAll<HTMLElement>('[data-raiju-demo]').forEach((root) => {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const canvas = root.querySelector<HTMLCanvasElement>('.pad')!;
+    const ctx = canvas.getContext('2d')!;
+    const status = root.querySelector<HTMLElement>('.status')!;
+    const hud = root.querySelector<HTMLElement>('.hud')!;
+    const url = root.querySelector<HTMLElement>('.url')!;
+    const tabs = root.querySelector<HTMLElement>('.tabs')!;
+    const pages: { label: string; url: string }[] = JSON.parse(root.dataset.pages!);
+    const gestures: { id: string; keys: string; name: string; path: number[][] }[] = JSON.parse(root.dataset.gestures!);
+    const templates = gestures.map((g) => ({ ...g, pts: normalize(resample(g.path.map(([x, y]) => ({ x, y })), N)) }));
+
+    let stroke: Pt[] = [];
+    let drawing = false;
+    // 当前开着的标签页（pages 的下标）和选中的是第几个
+    let open = pages.map((_, i) => i);
+    let active = 0;
+    let fade: number | undefined;
+    let hudTimer: number | undefined;
+
+    const fit = () => {
+      const r = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const w = Math.round(r.width * dpr);
+      const h = Math.round(r.height * dpr);
+      if (w === canvas.width && h === canvas.height) return;
+      // 改尺寸会清空画布，正在画的轨迹要补画回来
+      canvas.width = w;
+      canvas.height = h;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (drawing) paint(TRAIL);
+    };
+    fit();
+    new ResizeObserver(fit).observe(canvas);
+
+    const paint = (color: string, alpha = 1) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (stroke.length < 2) return;
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(stroke[0].x, stroke[0].y);
+      stroke.forEach((p) => ctx.lineTo(p.x, p.y));
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    };
+
+    const fadeOut = (color: string) => {
+      if (fade) cancelAnimationFrame(fade);
+      let a = 1;
+      const tick = () => {
+        a -= 0.06;
+        paint(color, Math.max(a, 0));
+        if (a > 0) fade = requestAnimationFrame(tick);
+        else stroke = [];
+      };
+      fade = requestAnimationFrame(tick);
+    };
+
+    const render = () => {
+      tabs.innerHTML = '';
+      open.forEach((p, i) => {
+        const t = document.createElement('span');
+        t.className = i === active ? 'tab on' : 'tab';
+        t.textContent = pages[p].label;
+        tabs.append(t);
+      });
+      url.textContent = pages[open[active]].url;
+    };
+
+    // 手势对应的窗口动作
+    const act = (id: string) => {
+      root.dataset.act = '';
+      void root.offsetWidth;
+      if (id === 'next') active = (active + 1) % open.length;
+      if (id === 'prev') active = (active + open.length - 1) % open.length;
+      if (id === 'maximize') root.toggleAttribute('data-max');
+      if (id === 'close') {
+        open.splice(active, 1);
+        // 全关完了就把 4 个标签页重新打开，演示可以接着玩
+        if (!open.length) open = pages.map((_, i) => i);
+        active = Math.min(active, open.length - 1);
+      }
+      render();
+      root.dataset.act = id;
+    };
+
+    const finish = () => {
+      if (!drawing) return;
+      drawing = false;
+      root.classList.remove('drawing');
+      if (length(stroke) < 24) {
+        status.textContent = root.dataset.short!;
+        fadeOut('#9ca3af');
+        return;
+      }
+      const pts = normalize(resample(stroke, N));
+      const best = templates
+        .map((t) => ({ t, d: distance(pts, t.pts) }))
+        .sort((a, b) => a.d - b.d)[0];
+      root.querySelectorAll('.legend li').forEach((li) => li.classList.remove('hit'));
+      window.clearTimeout(hudTimer);
+      if (best.d < ACCEPT) {
+        hud.querySelector('.hud-name')!.textContent = best.t.name;
+        hud.querySelector('.hud-keys')!.textContent = best.t.keys;
+        hud.classList.add('on');
+        status.textContent = `${best.t.name} · ${best.t.keys}`;
+        root.querySelector(`.legend [data-g="${best.t.id}"]`)?.classList.add('hit');
+        hudTimer = window.setTimeout(() => hud.classList.remove('on'), 1400);
+        act(best.t.id);
+        fadeOut(TRAIL);
+      } else {
+        hud.classList.remove('on');
+        status.textContent = root.dataset.miss!;
+        fadeOut('#9ca3af');
+      }
+    };
+
+    const point = (e: PointerEvent): Pt => {
+      const r = canvas.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    };
+
+    canvas.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 && e.button !== 2) return;
+      e.preventDefault();
+      if (fade) cancelAnimationFrame(fade);
+      try {
+        canvas.setPointerCapture(e.pointerId);
+      } catch {}
+      drawing = true;
+      root.classList.add('drawing');
+      stroke = [point(e)];
+      paint(TRAIL);
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!drawing) return;
+      stroke.push(point(e));
+      paint(TRAIL);
+    });
+    canvas.addEventListener('pointerup', finish);
+    canvas.addEventListener('pointercancel', finish);
+    // 右键画手势时不弹出浏览器菜单
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+  });
+</script>
+
+<style>
+  .rj {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, #faf6ee, #f5dcc4 60%, #f2b48a);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .menubar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 22px;
+    padding: 0 10px;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(8px);
+    font-size: 11px;
+  }
+  .tray {
+    border-radius: 3px;
+  }
+  .desk {
+    position: relative;
+    flex: 1;
+  }
+  .win {
+    position: absolute;
+    left: 7%;
+    right: 7%;
+    top: 8%;
+    bottom: 24%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    transform-origin: 50% 130%;
+    transition:
+      inset 0.25s ease,
+      border-radius 0.25s ease;
+  }
+  .rj[data-max] .win {
+    inset: 0;
+    border-radius: 0;
+  }
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 24px;
+    padding: 0 8px;
+    background: #f4f4f5;
+  }
+  .title i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff5f57;
+    flex-shrink: 0;
+  }
+  .title i:nth-child(2) {
+    background: #febc2e;
+  }
+  .title i:nth-child(3) {
+    background: #28c840;
+  }
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-left: 10px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  /* 标签页由脚本重建，拿不到作用域属性，用 :global */
+  .tabs :global(.tab) {
+    max-width: 90px;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 10px;
+    color: #71717a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tabs :global(.tab.on) {
+    background: #fff;
+    color: #27272a;
+  }
+  .bar {
+    padding: 5px 10px;
+    border-bottom: 1px solid #f0f0f2;
+  }
+  .url {
+    display: block;
+    padding: 2px 8px;
+    border-radius: 5px;
+    background: #f4f4f5;
+    font-size: 10px;
+    color: #52525b;
+  }
+  .view {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 10px 12px;
+  }
+  .view span {
+    height: 9px;
+    border-radius: 4px;
+    background: #e4e4e7;
+  }
+  .view .hero {
+    height: 34px;
+    background: #ffe2cc;
+  }
+  .view .short {
+    width: 55%;
+  }
+  .pad {
+    position: absolute;
+    inset: 22px 0 0;
+    width: 100%;
+    height: calc(100% - 22px);
+    touch-action: none;
+    cursor: crosshair;
+  }
+  .hud {
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: rgba(28, 28, 30, 0.88);
+    color: #faf6ee;
+    font-size: 14px;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease;
+    pointer-events: none;
+  }
+  .hud.on {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  .hud kbd {
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: #ff6a13;
+    color: #fff;
+    font-family: inherit;
+    font-weight: 700;
+  }
+  .status {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 34px;
+    margin: 0;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #7c2d12;
+    pointer-events: none;
+  }
+  .legend {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 8px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0;
+    padding: 0 8px;
+    list-style: none;
+    pointer-events: none;
+  }
+  .legend li {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px 2px 2px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.85);
+    font-size: 11px;
+    color: #3f3f46;
+    transition: background 0.15s ease;
+  }
+  .legend .arrow {
+    width: 18px;
+    height: 18px;
+    padding: 1px;
+    border-radius: 4px;
+    background: #1c1c1e;
+    flex-shrink: 0;
+  }
+  .legend .arrow path {
+    fill: none;
+    stroke: #faf6ee;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .legend .arrow circle {
+    fill: #ff6a13;
+  }
+  .legend li.hit .arrow circle {
+    fill: #faf6ee;
+  }
+  .legend li.hit {
+    background: #ff6a13;
+    color: #fff;
+  }
+  .rj.drawing .legend,
+  .rj.drawing .status {
+    opacity: 0.4;
+  }
+  .rj[data-act='next'] .view {
+    animation: in-right 0.3s ease;
+  }
+  .rj[data-act='prev'] .view {
+    animation: in-left 0.3s ease;
+  }
+  .rj[data-act='minimize'] .win {
+    animation: genie 1.3s ease;
+  }
+  .rj[data-act='close'] .tabs {
+    animation: blink-tabs 0.3s ease;
+  }
+  @keyframes in-right {
+    from {
+      opacity: 0;
+      transform: translateX(24px);
+    }
+  }
+  @keyframes in-left {
+    from {
+      opacity: 0;
+      transform: translateX(-24px);
+    }
+  }
+  @keyframes genie {
+    35%,
+    70% {
+      opacity: 0;
+      transform: scale(0.08);
+    }
+  }
+  @keyframes blink-tabs {
+    from {
+      opacity: 0.3;
+    }
+  }
+  /* 窄屏：识别结果看 HUD 就够了，收起状态文字，图例压成一行 */
+  @media (max-width: 520px) {
+    .win {
+      bottom: 20%;
+    }
+    .status {
+      display: none;
+    }
+    .legend {
+      gap: 3px;
+      padding: 0 4px;
+      bottom: 6px;
+    }
+    .legend li {
+      gap: 2px;
+      padding: 1px 4px 1px 1px;
+      font-size: 8px;
+    }
+    .legend .arrow {
+      width: 14px;
+      height: 14px;
+    }
+    .hud {
+      font-size: 12px;
+    }
+  }
+</style>
