@@ -23,6 +23,8 @@ export const products = [
     tint: '#FF6A13',
     name: 'Raiju',
     platforms: ['macOS'],
+    // 有深色版图标 /icons/raiju-dark.png，黑暗模式下换上
+    darkIcon: true,
     // 官网下载版（Developer ID），还没发布：没有 storeUrl，下载按钮显示「即将推出」。发布后填 downloadUrl
     comingSoon: true,
     zh: {

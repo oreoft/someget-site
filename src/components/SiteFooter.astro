@@ -61,8 +61,8 @@ const title = productName ? t.helpTitle.replace('{name}', productName) : t.conta
 <style>
   .band {
     margin-top: 48px;
-    background: var(--ink);
-    color: var(--bg);
+    background: var(--band);
+    color: var(--band-ink);
   }
   .contact {
     display: grid;
@@ -80,14 +80,14 @@ const title = productName ? t.helpTitle.replace('{name}', productName) : t.conta
   .contact p {
     margin: 16px 0 0;
     font-size: 17px;
-    color: #b9bbc2;
+    color: var(--band-ink-2);
   }
   .band .pill {
-    border-color: var(--bg);
+    border-color: var(--band-ink);
   }
   .band .pill:hover {
-    background: var(--bg);
-    color: var(--ink);
+    background: var(--band-ink);
+    color: var(--band);
   }
   .actions {
     display: flex;

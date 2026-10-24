@@ -51,7 +51,10 @@ const heroIcons = ['instash', 'muninn', 'loopback'];
         products.map((p, i) => (
           <article class="row">
             <span class="mono num">{String(i + 1).padStart(2, '0')}</span>
-            <img class="app-icon" src={`/icons/${p.id}.png`} alt={`${p.name}`} width="112" height="112" loading="lazy" decoding="async" />
+            <picture>
+              {p.darkIcon && <source srcset={`/icons/${p.id}-dark.png`} media="(prefers-color-scheme: dark)" />}
+              <img class="app-icon" src={`/icons/${p.id}.png`} alt={`${p.name}`} width="112" height="112" loading="lazy" decoding="async" />
+            </picture>
             <div class="text">
               <h2 class="display">
                 {p.name} <small>{p.platforms.join(' · ')}</small>

@@ -36,6 +36,7 @@ const Demo = demos[id];
 const Frame = product.platforms.every((x: string) => x === 'macOS') ? MacFrame : PhoneFrame;
 const path = `/${id}`;
 const icon = `/icons/${id}.png`;
+const iconDark = product.darkIcon ? `/icons/${id}-dark.png` : null;
 const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.download;
 ---
 
@@ -52,7 +53,7 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
     <section class="container hero">
       <div class="hero-text">
         <div class="ident">
-          <img class="app-icon" src={icon} alt="" width="64" height="64" />
+          <picture>{iconDark && <source srcset={iconDark} media="(prefers-color-scheme: dark)" />}<img class="app-icon" src={icon} alt="" width="64" height="64" /></picture>
           <div>
             <p class="name display">{product.name}</p>
             <p class="mono platforms">{product.platforms.join(' · ')}</p>
@@ -63,7 +64,7 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
         <DownloadCta product={product} t={t} storeLabel={storeLabel} showDemo />
       </div>
       <div class="hero-art" style={`--tint: ${product.tint}`} aria-hidden="true">
-        <img class="app-icon big" src={icon} alt="" width="260" height="260" />
+        <picture>{iconDark && <source srcset={iconDark} media="(prefers-color-scheme: dark)" />}<img class="app-icon big" src={icon} alt="" width="260" height="260" /></picture>
       </div>
     </section>
 
@@ -97,7 +98,7 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
     </section>
 
     <section class="container block download">
-      <img class="app-icon" src={icon} alt="" width="96" height="96" />
+      <picture>{iconDark && <source srcset={iconDark} media="(prefers-color-scheme: dark)" />}<img class="app-icon" src={icon} alt="" width="96" height="96" /></picture>
       <div>
         <h2 class="display">{product.name}</h2>
         <p class="sub">{product[lang].tagline}</p>

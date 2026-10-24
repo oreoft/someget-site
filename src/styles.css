@@ -1,5 +1,6 @@
 /* someget 共用设计规范：所有站点（官网 + 落地页）都引这一份，保证风格统一。 */
 :root {
+  color-scheme: light dark;
   --bg: #f6f6f3;
   --ink: #16171a;
   --ink-2: #4a4d55;
@@ -7,6 +8,14 @@
   --line: #d6d6d0;
   --accent: #e5532d;
   --surface: #ffffff;
+  --accent-hover: #c9431f;
+  /* 宽屏"纸"外圈的底色 */
+  --frame: #e4e3dc;
+  --frame-shadow: rgba(30, 30, 20, 0.12);
+  /* 页脚联系区的深色色带 */
+  --band: #16171a;
+  --band-ink: #f6f6f3;
+  --band-ink-2: #b9bbc2;
 
   --font-display: 'Geist', 'Noto Sans SC', system-ui, sans-serif;
   --font-body: 'Noto Sans SC', system-ui, sans-serif;
@@ -15,6 +24,26 @@
   --radius-icon: 22.5%;
   --container: 1200px;
   --gutter: clamp(24px, 5vw, 72px);
+}
+
+/* 黑暗模式：跟随系统。只换颜色变量，组件里都用变量，不用各自再写一遍 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151619;
+    --ink: #ecebe6;
+    --ink-2: #b1b3b9;
+    --ink-3: #80838b;
+    --line: #2e3036;
+    --accent: #ec5d36;
+    --surface: #1e2024;
+    --accent-hover: #f37a57;
+    --frame: #0c0d0f;
+    --frame-shadow: rgba(0, 0, 0, 0.5);
+    /* 页面本身已经是深色，色带改成稍亮一层来区分 */
+    --band: #222429;
+    --band-ink: #ecebe6;
+    --band-ink-2: #a3a6ad;
+  }
 }
 
 *,
@@ -41,6 +70,14 @@ img {
   display: block;
 }
 
+/* <picture> 只用来按深浅色换图，不参与布局，排版仍以里面的 img 为准 */
+picture {
+  display: contents;
+}
+picture > source {
+  display: none;
+}
+
 .container {
   max-width: var(--container);
   margin: 0 auto;
@@ -60,6 +97,14 @@ img {
 
 .app-icon {
   border-radius: var(--radius-icon);
+}
+
+/* 深底图标放在深色页面上看不出轮廓，描一圈淡边 */
+@media (prefers-color-scheme: dark) {
+  .app-icon {
+    outline: 1px solid rgba(255, 255, 255, 0.1);
+    outline-offset: -1px;
+  }
 }
 
 .pill {
@@ -87,8 +132,8 @@ img {
 }
 
 .pill--accent:hover {
-  background: #c9431f;
-  border-color: #c9431f;
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
   color: #fff;
 }
 
@@ -96,7 +141,7 @@ img {
 @media (min-width: 1280px) {
   html,
   body {
-    background: #e4e3dc;
+    background: var(--frame);
   }
   .page {
     max-width: var(--container);
@@ -106,6 +151,6 @@ img {
     overflow: hidden;
     box-shadow:
       0 1px 0 rgba(0, 0, 0, 0.04),
-      0 24px 60px rgba(30, 30, 20, 0.12);
+      0 24px 60px var(--frame-shadow);
   }
 }
