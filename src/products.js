@@ -41,7 +41,8 @@ export const products = [
     tint: '#F0832E',
     name: 'Blink',
     platforms: ['macOS'],
-    // TODO: 上架后换成真实的 App Store 链接，现在是占位
+    // 还没上架：下载按钮显示「即将推出」。上架后去掉 comingSoon，把 storeUrl 换成真实的 App Store 链接
+    comingSoon: true,
     storeUrl: 'https://apps.apple.com/app/id0000000000',
     zh: {
       tagline: '一键直达你的应用。',
