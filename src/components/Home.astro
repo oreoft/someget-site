@@ -2,7 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 import SiteHeader from './SiteHeader.astro';
 import SiteFooter from './SiteFooter.astro';
-import { products } from '../products.js';
+import { products, getProduct } from '../products.js';
 import { ui, localize } from '../i18n.js';
 
 interface Props {
@@ -42,7 +42,14 @@ const heroIcons = ['instash', 'muninn', 'loopback'];
         <p class="lead">{copy.lead}</p>
       </div>
       <div class="stack" aria-hidden="true">
-        {heroIcons.map((id, i) => <img class={`app-icon s${i}`} src={`/icons/${id}.png`} alt="" />)}
+        {
+          heroIcons.map((id, i) => (
+            <picture>
+              {getProduct(id)?.darkIcon && <source srcset={`/icons/${id}-dark.png`} media="(prefers-color-scheme: dark)" />}
+              <img class={`app-icon s${i}`} src={`/icons/${id}.png`} alt="" />
+            </picture>
+          ))
+        }
       </div>
     </section>
 

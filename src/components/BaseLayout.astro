@@ -1,6 +1,7 @@
 ---
 import '../styles.css';
 import { ui, localize } from '../i18n.js';
+import { getProduct } from '../products.js';
 
 interface Props {
   lang: 'zh' | 'en';
@@ -17,6 +18,9 @@ const { lang, title, description = '', icon, path = '/', movedTo } = Astro.props
 const site = Astro.site ? Astro.site.toString().replace(/\/$/, '') : '';
 const canonical = movedTo ? movedTo[lang] : `${site}${localize(lang, path)}`;
 const ogImage = icon ? `${site}${icon}` : undefined;
+// 产品图标有深色版时，浏览器标签页在黑暗模式下也换上
+const iconId = icon?.match(/^\/icons\/([a-z0-9-]+)\.png$/)?.[1];
+const iconDark = iconId && getProduct(iconId)?.darkIcon ? `/icons/${iconId}-dark.png` : undefined;
 ---
 
 <!doctype html>
@@ -36,7 +40,8 @@ const ogImage = icon ? `${site}${icon}` : undefined;
     <meta name="twitter:card" content="summary" />
     <meta name="msvalidate.01" content="F5C24D2A2B5A9D0EE07A48265A57641F" />
     <meta name="baidu-site-verification" content="codeva-9vS1Wr5eGV" />
-    {icon && <link rel="icon" href={icon} />}
+    {icon && <link rel="icon" href={icon} media={iconDark && '(prefers-color-scheme: light)'} />}
+    {iconDark && <link rel="icon" href={iconDark} media="(prefers-color-scheme: dark)" />}
     {icon && <link rel="apple-touch-icon" href={icon} />}
     <link rel="alternate" hreflang="zh" href={movedTo ? movedTo.zh : `${site}${localize('zh', path)}`} />
     <link rel="alternate" hreflang="en" href={movedTo ? movedTo.en : `${site}${localize('en', path)}`} />

@@ -1,6 +1,7 @@
 // 产品清单：官网列表和各落地页共用。新增产品在这里加一条。
 // 有自己网页版的产品（website: true）用独立子域名，官网直接外链过去；
 // 没有网页版的产品，落地页就在本站 someget.xyz/<id>。以后有了网页版再迁出去。
+// darkIcon: 有深色版图标 /icons/<id>-dark.png，黑暗模式下换上
 export const products = [
   {
     id: 'tlbox',
@@ -23,7 +24,6 @@ export const products = [
     tint: '#FF6A13',
     name: 'Raiju',
     platforms: ['macOS'],
-    // 有深色版图标 /icons/raiju-dark.png，黑暗模式下换上
     darkIcon: true,
     // 官网下载版（Developer ID），还没发布：没有 storeUrl，下载按钮显示「即将推出」。发布后填 downloadUrl
     comingSoon: true,
@@ -38,6 +38,7 @@ export const products = [
   },
   {
     id: 'blink',
+    darkIcon: true,
     tint: '#F0832E',
     name: 'Blink',
     platforms: ['macOS'],
@@ -55,6 +56,7 @@ export const products = [
   },
   {
     id: 'loopback',
+    darkIcon: true,
     tint: '#1B3F6B',
     name: 'Loopback',
     platforms: ['iOS'],
@@ -70,6 +72,7 @@ export const products = [
   },
   {
     id: 'muninn',
+    darkIcon: true,
     tint: '#8C7EE0',
     name: 'Muninn',
     platforms: ['iOS', 'Android', 'Web'],
