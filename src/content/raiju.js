@@ -38,6 +38,10 @@ export default {
         a: 'macOS 14（Sonoma）及以上，为 Apple 芯片的 Mac 原生打造。',
       },
       {
+        q: '有广告或内购吗？',
+        a: '没有广告，没有内购，也不收集任何数据。',
+      },
+      {
         q: '为什么需要「辅助功能」权限？',
         a: 'Raiju 要读取鼠标按键和移动来识别手势，再替你按下对应的快捷键，这两件事都需要 macOS 的辅助功能授权。第一次打开时按提示在「系统设置 → 隐私与安全性 → 辅助功能」里打开 Raiju 即可。',
       },
@@ -127,6 +131,10 @@ export default {
       {
         q: 'Which macOS versions are supported?',
         a: 'macOS 14 (Sonoma) and later, built natively for Macs with Apple silicon.',
+      },
+      {
+        q: 'Are there ads or in-app purchases?',
+        a: 'No ads, no in-app purchases, and no data collected.',
       },
       {
         q: 'Why does Raiju need Accessibility access?',

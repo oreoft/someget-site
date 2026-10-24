@@ -77,7 +77,7 @@ export default {
         {
           h: '产品与付费',
           p: [
-            '各产品可能有自己的补充说明。通过 App Store 购买的订阅，由 Apple 按其条款处理付款、续订和退款。',
+            '各产品可能有自己的补充说明。在 App Store 上的购买（包括订阅），由 Apple 按其条款处理付款、续订和退款。',
           ],
         },
         {
@@ -169,7 +169,7 @@ export default {
         {
           h: 'Products and payments',
           p: [
-            'Some products have additional notes of their own. Subscriptions bought through the App Store are billed, renewed and refunded by Apple under its terms.',
+            'Some products have additional notes of their own. Purchases made through the App Store, including subscriptions, are billed, renewed and refunded by Apple under its terms.',
           ],
         },
         {
