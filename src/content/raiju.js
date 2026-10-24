@@ -59,7 +59,7 @@ export default {
       },
     ],
     privacy: {
-      updated: '2026-10-23',
+      updated: '2026-10-24',
       intro: 'Raiju 由 someget 开发。你的手势和使用习惯只属于你，我们不运营任何服务器来接收你的数据。',
       sections: [
         {
@@ -74,7 +74,10 @@ export default {
         },
         {
           h: '数据存在哪里',
-          p: ['你设置的手势和偏好保存在你的 Mac 上。导入 WGestures 配置时，Raiju 只在本机读取那份配置文件。'],
+          p: [
+            '你设置的手势和偏好保存在你的 Mac 上。导入 WGestures 配置时，Raiju 只在本机读取那份配置文件。',
+            '如果你打开了 iCloud 同步，手势和显示设置还会保存在你自己的 iCloud 账户里，用来让你的几台 Mac 保持一致。这些数据只有你能访问，我们看不到。在偏好设置里关掉同步即可停止。',
+          ],
         },
         {
           h: '儿童隐私',
@@ -147,7 +150,7 @@ export default {
       },
     ],
     privacy: {
-      updated: '2026-10-23',
+      updated: '2026-10-24',
       intro: 'Raiju is made by someget. Your gestures and habits belong to you, and we run no servers that receive your data.',
       sections: [
         {
@@ -162,7 +165,10 @@ export default {
         },
         {
           h: 'Where your data lives',
-          p: ['Your gestures and preferences are stored on your Mac. When importing WGestures settings, Raiju only reads that settings file locally.'],
+          p: [
+            'Your gestures and preferences are stored on your Mac. When importing WGestures settings, Raiju only reads that settings file locally.',
+            'If you turn on iCloud sync, your gestures and display settings are also stored in your own iCloud account so your Macs stay in step. Only you can access that data; we cannot see it. Turn sync off in Preferences to stop.',
+          ],
         },
         {
           h: "Children's privacy",
