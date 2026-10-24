@@ -16,7 +16,7 @@ someget 的官网 `www.someget.xyz`（根域名 `someget.xyz` 308 跳转到 www�
 | `src/pages/` | 页面路由：首页、`[product]/`（落地页、隐私政策、支持页），`en/` 下是英文版 |
 | `src/products.js` | 产品清单，首页列表和落地页共用 |
 | `src/content/<id>.js` | 各产品的中英文案：介绍、功能、常见问题、隐私政策 |
-| `src/components/` | 页头页脚、首页、落地页骨架、隐私和支持页、手机外框 |
+| `src/components/` | 页头页脚、首页、落地页骨架、隐私和支持页、手机外框和 Mac 外框（只有 Mac 版的产品用） |
 | `src/demos/` | 各产品的可点击手机演示 |
 | `src/i18n.js` | 导航、按钮等界面文字 |
 | `src/styles.css` | 共用设计规范（颜色、字体、按钮） |

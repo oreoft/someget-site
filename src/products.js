@@ -19,6 +19,22 @@ export const products = [
     },
   },
   {
+    id: 'blink',
+    tint: '#F0832E',
+    name: 'Blink',
+    platforms: ['macOS'],
+    // TODO: 上架后换成真实的 App Store 链接，现在是占位
+    storeUrl: 'https://apps.apple.com/app/id0000000000',
+    zh: {
+      tagline: '一键直达你的应用。',
+      summary: '给常用的应用绑定全局快捷键，按一下打开或切到它，再按一下隐藏。',
+    },
+    en: {
+      tagline: 'Your apps, one keystroke away.',
+      summary: 'Give each app you use a global shortcut. Press it once to open or switch to the app, press it again to hide it.',
+    },
+  },
+  {
     id: 'loopback',
     tint: '#1B3F6B',
     name: 'Loopback',

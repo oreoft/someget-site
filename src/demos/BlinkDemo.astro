@@ -1,0 +1,279 @@
+---
+// Blink 演示：Mac 桌面上点快捷键 → 应用来到最前面；它已经在最前面时再点 → 隐藏。
+// 状态只有"现在最前面是哪个应用"，所以不用 runtime.ts 的多屏切换，自己记在 data-front 上。
+interface Props {
+  lang: 'zh' | 'en';
+}
+
+const { lang } = Astro.props;
+const zh = lang === 'zh';
+const apps = [
+  { id: 'notes', key: '⌃N', name: zh ? '笔记' : 'Notes', color: '#f5c542' },
+  { id: 'browser', key: '⌃B', name: zh ? '浏览器' : 'Browser', color: '#3b82f6' },
+  { id: 'terminal', key: '⌃T', name: zh ? '终端' : 'Terminal', color: '#27272a' },
+];
+const s = zh
+  ? { desktop: '桌面', start: '点一个快捷键试试', shown: '{name} 来到最前面', hidden: '{name} 已隐藏', finder: '访达' }
+  : { desktop: 'Desktop', start: 'Press a shortcut to try it', shown: '{name} is in front', hidden: '{name} is hidden', finder: 'Finder' };
+---
+
+<div class="bk" data-blink-demo data-front="" data-shown={s.shown} data-hidden={s.hidden} data-finder={s.finder}>
+  <div class="menubar">
+    <b class="front-name">{s.finder}</b>
+    <img class="tray" src="/icons/blink.png" alt="" width="14" height="14" />
+  </div>
+
+  <div class="desk">
+    <div class="win w-notes" data-win="notes">
+      <div class="title"><i></i><i></i><i></i><span>{apps[0].name}</span></div>
+      <div class="body notes-body">
+        <p>{zh ? '周五前写完发版说明' : 'Finish release notes by Friday'}</p>
+        <p>{zh ? '- 截图' : '- Screenshots'}</p>
+        <p>{zh ? '- 更新日志' : '- Changelog'}</p>
+      </div>
+    </div>
+    <div class="win w-browser" data-win="browser">
+      <div class="title"><i></i><i></i><i></i><span class="url">someget.xyz</span></div>
+      <div class="body browser-body"><span></span><span></span><span class="short"></span></div>
+    </div>
+    <div class="win w-terminal" data-win="terminal">
+      <div class="title"><i></i><i></i><i></i><span>{apps[2].name}</span></div>
+      <div class="body term-body">$ npm run build<br />✓ done in 0.4s<br />$ <u></u></div>
+    </div>
+  </div>
+
+  <p class="status" aria-live="polite">{s.start}</p>
+
+  <div class="keys">
+    {
+      apps.map((a, i) => (
+        <button type="button" class:list={['key', { pulse: i === 0 }]} data-app={a.id} data-name={a.name}>
+          <kbd>{a.key}</kbd>
+          <span>{a.name}</span>
+        </button>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-blink-demo]').forEach((root) => {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const status = root.querySelector<HTMLElement>('.status')!;
+    const frontName = root.querySelector<HTMLElement>('.front-name')!;
+
+    root.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-app]');
+      if (!btn) return;
+      root.querySelector('.pulse')?.classList.remove('pulse');
+      const { app = '', name = '' } = btn.dataset;
+      // 已经在最前面 → 隐藏；否则切到它
+      const hide = root.dataset.front === app;
+      root.dataset.front = hide ? '' : app;
+      frontName.textContent = hide ? (root.dataset.finder ?? '') : name;
+      status.textContent = (hide ? root.dataset.hidden : root.dataset.shown)!.replace('{name}', name);
+      btn.classList.remove('hit');
+      void btn.offsetWidth;
+      btn.classList.add('hit');
+    });
+  });
+</script>
+
+<style>
+  .bk {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, #fde7cf, #f7c79c 55%, #f0a868);
+  }
+  .menubar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 22px;
+    padding: 0 10px;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(8px);
+    font-size: 11px;
+  }
+  .tray {
+    border-radius: 3px;
+  }
+  .desk {
+    position: relative;
+    flex: 1;
+  }
+  .win {
+    position: absolute;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    opacity: 0;
+    transform: scale(0.85) translateY(30px);
+    transition:
+      opacity 0.25s ease,
+      transform 0.25s ease;
+    pointer-events: none;
+  }
+  .bk[data-front='notes'] .w-notes,
+  .bk[data-front='browser'] .w-browser,
+  .bk[data-front='terminal'] .w-terminal {
+    opacity: 1;
+    transform: none;
+    z-index: 2;
+  }
+  .w-notes {
+    left: 8%;
+    top: 10%;
+    width: 46%;
+    height: 72%;
+  }
+  .w-browser {
+    left: 26%;
+    top: 6%;
+    width: 64%;
+    height: 80%;
+  }
+  .w-terminal {
+    left: 40%;
+    top: 16%;
+    width: 50%;
+    height: 62%;
+    background: #1c1c1f;
+    color: #d4d4d8;
+  }
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 22px;
+    padding: 0 8px;
+    background: #f4f4f5;
+    font-size: 11px;
+    color: #52525b;
+  }
+  .w-terminal .title {
+    background: #2a2a2e;
+    color: #a1a1aa;
+  }
+  .title i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff5f57;
+  }
+  .title i:nth-child(2) {
+    background: #febc2e;
+  }
+  .title i:nth-child(3) {
+    background: #28c840;
+  }
+  .title span {
+    margin-left: 6px;
+  }
+  .title .url {
+    flex: 1;
+    margin-left: 10px;
+    padding: 1px 8px;
+    border-radius: 4px;
+    background: #fff;
+  }
+  .body {
+    padding: 10px 12px;
+  }
+  .notes-body {
+    background: #fff8dc;
+    height: 100%;
+  }
+  .notes-body p {
+    margin: 0 0 4px;
+    font-size: 12px;
+  }
+  .browser-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .browser-body span {
+    height: 12px;
+    border-radius: 4px;
+    background: #e4e4e7;
+  }
+  .browser-body span:first-child {
+    height: 40px;
+    background: #dbeafe;
+  }
+  .browser-body .short {
+    width: 60%;
+  }
+  .term-body {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .term-body u {
+    display: inline-block;
+    width: 6px;
+    height: 11px;
+    background: #d4d4d8;
+    vertical-align: middle;
+    text-decoration: none;
+  }
+  .status {
+    margin: 0;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #7c2d12;
+  }
+  .keys {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 8px 0 12px;
+  }
+  .key {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px 5px 6px;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+    font: inherit;
+    font-size: 12px;
+    color: #111;
+    cursor: pointer;
+  }
+  .key kbd {
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: #fff;
+    border: 1px solid #e4e4e7;
+    font-family: inherit;
+    font-weight: 700;
+  }
+  .key.hit {
+    animation: press 0.18s ease;
+  }
+  .pulse {
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes press {
+    50% {
+      transform: translateY(2px);
+      box-shadow: 0 0 0 rgba(0, 0, 0, 0.15);
+    }
+  }
+  @keyframes pulse {
+    50% {
+      box-shadow:
+        0 2px 0 rgba(0, 0, 0, 0.15),
+        0 0 0 5px rgba(240, 131, 46, 0.45);
+    }
+  }
+</style>

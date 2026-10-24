@@ -1,0 +1,50 @@
+---
+// Mac 外框：只有 macOS 版的产品用它放演示（其余用 PhoneFrame）。
+// 屏幕是 16:10，宽约 460px，演示组件按这个尺寸写，撑满屏幕。
+interface Props {
+  label?: string;
+}
+
+const { label = 'App demo' } = Astro.props;
+---
+
+<div class="mac" role="group" aria-label={label}>
+  <div class="screen">
+    <slot>
+      <p class="empty">[demo]</p>
+    </slot>
+  </div>
+  <div class="base" aria-hidden="true"></div>
+</div>
+
+<style>
+  .mac {
+    width: 480px;
+    max-width: 100%;
+    flex-shrink: 0;
+  }
+  .screen {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    border: 10px solid #16171a;
+    border-radius: 18px 18px 6px 6px;
+    background: #f2f2f7;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Noto Sans SC', sans-serif;
+    color: #111;
+    font-size: 13px;
+  }
+  .base {
+    height: 12px;
+    margin: 0 -4%;
+    border-radius: 0 0 14px 14px;
+    background: linear-gradient(#d4d4d8, #a1a1aa);
+  }
+  .empty {
+    margin: 0;
+    padding-top: 25%;
+    text-align: center;
+    color: var(--ink-3);
+  }
+</style>
