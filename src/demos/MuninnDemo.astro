@@ -161,7 +161,7 @@ const post = zh
   .mu {
     position: absolute;
     inset: 0;
-    background: #f6f4fb;
+    background: #f2f2f4;
   }
   .scr {
     position: absolute;
@@ -198,7 +198,7 @@ const post = zh
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: #6d5bd0;
+    background: #1f6f4e;
     color: #fff;
     font-size: 20px;
     line-height: 30px;
@@ -207,8 +207,8 @@ const post = zh
   .search {
     padding: 8px 12px;
     border-radius: 10px;
-    background: #ebe8f4;
-    color: #8e8aa0;
+    background: #fff;
+    color: #8e929b;
     font-size: 13px;
   }
   .chips {
@@ -218,11 +218,11 @@ const post = zh
   .chips span {
     padding: 4px 10px;
     border-radius: 999px;
-    background: #ebe8f4;
+    background: #fff;
     font-size: 11px;
   }
   .chips .on {
-    background: #2a2346;
+    background: #16181d;
     color: #fff;
   }
   .leaf {
@@ -234,7 +234,7 @@ const post = zh
     padding: 10px 12px;
   }
   .leaf.new {
-    outline: 2px solid #6d5bd0;
+    outline: 2px solid #1f6f4e;
   }
   .src {
     margin: 0;
@@ -242,7 +242,7 @@ const post = zh
     align-items: center;
     gap: 6px;
     font-size: 11px;
-    color: #8e8aa0;
+    color: #8e929b;
   }
   .pf {
     padding: 1px 6px;
@@ -293,10 +293,10 @@ const post = zh
     background: #e6d9c9;
   }
   .muted {
-    color: #8e8aa0;
+    color: #8e929b;
   }
   .sheet-bg {
-    background: rgba(20, 16, 40, 0.35);
+    background: rgba(0, 0, 0, 0.3);
     padding: 0;
   }
   .sheet {
@@ -305,7 +305,7 @@ const post = zh
     right: 0;
     bottom: 0;
     top: 44px;
-    background: #f6f4fb;
+    background: #f2f2f4;
     border-radius: 14px 14px 0 0;
     padding: 14px;
     display: flex;
@@ -324,18 +324,18 @@ const post = zh
     align-self: flex-start;
     padding: 8px 14px;
     border-radius: 999px;
-    background: #ebe8f4;
-    color: #6d5bd0;
+    background: #e7f2ec;
+    color: #1b6b4a;
     font-weight: 600;
     font-size: 13px;
   }
   .hint {
     margin: 0;
     font-size: 12px;
-    color: #6d5bd0;
+    color: #1b6b4a;
   }
   .link {
-    color: #6d5bd0;
+    color: #1b6b4a;
     font-weight: 700;
     font-size: 15px;
   }
@@ -350,35 +350,35 @@ const post = zh
   .tags span {
     padding: 3px 9px;
     border-radius: 999px;
-    background: #ebe8f4;
-    color: #6d5bd0;
+    background: #e7f2ec;
+    color: #1b6b4a;
     font-size: 11px;
   }
   .actions {
     display: flex;
     gap: 14px;
     font-size: 12px;
-    color: #6d5bd0;
+    color: #1b6b4a;
     font-weight: 600;
   }
   .sec {
     margin: 6px 0 0;
     font-size: 12px;
     font-weight: 700;
-    color: #8e8aa0;
+    color: #8e929b;
   }
   .note-empty {
     padding: 12px;
     border-radius: 12px;
-    border: 1.5px dashed #c9c2e6;
-    color: #8e8aa0;
+    border: 1.5px dashed #c9ccd2;
+    color: #8e929b;
     font-size: 13px;
   }
   .note {
     padding: 12px;
     border-radius: 12px;
     background: #fff;
-    border-left: 3px solid #6d5bd0;
+    border-left: 3px solid #1f6f4e;
     font-size: 13px;
     line-height: 1.5;
   }
@@ -386,8 +386,8 @@ const post = zh
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    border: 2px solid #d6d1ea;
-    border-top-color: #6d5bd0;
+    border: 2px solid #e6e7ea;
+    border-top-color: #1f6f4e;
     animation: spin 0.8s linear infinite;
   }
   .again {
@@ -397,7 +397,7 @@ const post = zh
     transform: translateX(-50%);
     padding: 8px 16px;
     border-radius: 999px;
-    background: #2a2346;
+    background: #16181d;
     color: #fff;
     font-size: 13px;
     font-weight: 600;
@@ -443,7 +443,7 @@ const post = zh
    * 深色外观：中性色照搬 Muninn App 的深色配色（DesignSystem.swift 里 Palette.white 的 dark 值）：
    *   底 #000、卡片/输入框 #161618、底槽/标签底 #1E1E21、细边 #2A2B30、
    *   正文 #ECEDF1、次级 #A2A8B5、三级 #6F7584；选中胶囊和 App 一样反色（墨色底 + 黑字）。
-   * 点缀色沿用演示浅色的紫色系，只提亮到深色上看得清的程度（浅色紫色不动）。
+   * 点缀色和浅色一样用 App 的绿色（Palette.white 的深色取值）。
    * 提示文字和脉冲圈跟全站深色的 --accent（#ec5d36）走。
    * 放在 reduced-motion 前面，保证系统要求减少动效时 animation: none 仍然生效。
    */
@@ -453,7 +453,7 @@ const post = zh
       color: #ecedf1;
     }
     .plus {
-      background: #7f6ee0;
+      background: #3fb88a;
     }
     .search {
       background: #1e1e21;
@@ -473,7 +473,7 @@ const post = zh
       box-shadow: inset 0 0 0 0.75px #2a2b30;
     }
     .leaf.new {
-      outline-color: #9b8cf2;
+      outline-color: #3fb88a;
     }
     .src {
       color: #a2a8b5;
@@ -506,33 +506,33 @@ const post = zh
       background: #1e1e21;
     }
     .ghost {
-      background: #221d38;
-      color: #a99cf5;
+      background: #13221b;
+      color: #5fd1a2;
     }
     .hint,
     .link,
     .actions {
-      color: #a99cf5;
+      color: #5fd1a2;
     }
     .tags span {
-      background: #221d38;
-      color: #a99cf5;
+      background: #13221b;
+      color: #5fd1a2;
     }
     .sec {
       color: #a2a8b5;
     }
     .note-empty {
-      border-color: rgba(155, 140, 242, 0.4);
+      border-color: rgba(63, 184, 138, 0.45);
       color: #6f7584;
     }
     .note {
       background: #161618;
-      border-left-color: #9b8cf2;
+      border-left-color: #3fb88a;
       box-shadow: inset 0 0 0 0.75px #2a2b30;
     }
     .spinner {
-      border-color: #2f2a48;
-      border-top-color: #9b8cf2;
+      border-color: #2a2b30;
+      border-top-color: #3fb88a;
     }
     .again {
       background: #ecedf1;
