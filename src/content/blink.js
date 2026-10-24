@@ -39,7 +39,7 @@ export default {
       },
       {
         q: '收费吗？',
-        a: '完全免费，没有内购，也没有广告。',
+        a: '一次买断，没有订阅、内购和广告。上架初期限时免费，价格以 App Store 显示为准。',
       },
       {
         q: '关掉菜单栏图标后，怎么打开设置？',
@@ -127,8 +127,8 @@ export default {
         a: 'macOS 14 (Sonoma) and later, on both Apple silicon and Intel Macs.',
       },
       {
-        q: 'Is it free?',
-        a: 'Yes, completely free, with no in-app purchases and no ads.',
+        q: 'How much does it cost?',
+        a: 'It is a one-time purchase with no subscription, in-app purchases or ads. It is free for a limited time at launch; see the App Store for the current price.',
       },
       {
         q: 'How do I open settings with the menu bar icon turned off?',
