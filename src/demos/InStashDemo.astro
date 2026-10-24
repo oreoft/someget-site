@@ -172,11 +172,42 @@ const colors = ['yellow', 'blue', 'green', 'pink', 'purple', 'gray'];
     line-height: 30px;
     text-align: center;
   }
-  .note {
-    padding: 14px;
+  /* 列表卡片和 App 一致（SharedNoteRowView）：白卡片 + 左侧便签色竖条 */
+  .is .note {
+    position: relative;
+    padding: 14px 14px 14px 18px;
     border-radius: 12px;
+    background: #fff;
     font-size: 14px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+  .is .note::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 6px;
+    border-radius: 3px;
+    background: var(--stripe);
+  }
+  .is .note.c-yellow {
+    --stripe: #f2cf4f;
+  }
+  .is .note.c-blue {
+    --stripe: #84bdee;
+  }
+  .is .note.c-green {
+    --stripe: #8fd487;
+  }
+  .is .note.c-pink {
+    --stripe: #f29cc2;
+  }
+  .is .note.c-purple {
+    --stripe: #b9a3f2;
+  }
+  .is .note.c-gray {
+    --stripe: #c4c4c4;
   }
   .muted {
     color: #8e8e93;
@@ -397,23 +428,11 @@ const colors = ['yellow', 'blue', 'green', 'pink', 'purple', 'gray'];
       --dk-accent-text: #ff8a65;
     }
 
-    /* 列表卡片：深灰卡片 + 左侧便签色竖条（和 SharedNoteRowView 一致） */
+    /* 列表卡片：深灰卡片；竖条用便签原色，白卡片上要加深一档，深色底上原色就够亮 */
     .is .note {
-      position: relative;
-      padding-left: 18px;
       background: #1c1c1e;
       color: #fff;
       box-shadow: none;
-    }
-    .is .note::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 8px;
-      bottom: 8px;
-      width: 6px;
-      border-radius: 3px;
-      background: var(--stripe);
     }
     .is .note.c-yellow {
       --stripe: #fbe7a1;
