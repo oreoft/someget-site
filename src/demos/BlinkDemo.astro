@@ -21,6 +21,12 @@ const s = zh
   <div class="menubar">
     <b class="front-name">{s.finder}</b>
     <img class="tray" src="/icons/blink.png" alt="" width="14" height="14" />
+    <!-- 深色下换成菜单栏模板图（来自 blink-launcher/docs/design/logo/menubar-template.svg），用 currentColor 跟随菜单栏文字色反白 -->
+    <svg class="tray-tpl" viewBox="0 0 18 18" width="14" height="14" aria-hidden="true">
+      <rect x="1.75" y="2.25" width="14.5" height="13.5" rx="3.2" fill="none" stroke="currentColor" stroke-width="1.5" />
+      <path d="M5 8.2 Q9 11.4 13 8.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+      <path d="M6.3 9.7 L5.6 11.2 M9 10.6 L9 12.2 M11.7 9.7 L12.4 11.2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+    </svg>
   </div>
 
   <div class="desk">
@@ -100,6 +106,9 @@ const s = zh
   }
   .tray {
     border-radius: 3px;
+  }
+  .tray-tpl {
+    display: none;
   }
   .desk {
     position: relative;
@@ -274,6 +283,118 @@ const s = zh
       box-shadow:
         0 2px 0 rgba(0, 0, 0, 0.15),
         0 0 0 5px rgba(240, 131, 46, 0.45);
+    }
+  }
+  /* ===== 深色模式：跟随系统，按 macOS 深色外观整体换肤；浅色值一律不动 ===== */
+  @media (prefers-color-scheme: dark) {
+    .bk {
+      color-scheme: dark;
+      /* 壁纸：保留暖橙色调，压暗成夜间版 */
+      background: linear-gradient(135deg, #2a1c13, #47291a 55%, #6a3816);
+    }
+    /* 菜单栏：深色半透明 + 底部细分隔线，文字近白 */
+    .menubar {
+      background: rgba(28, 28, 30, 0.6);
+      box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+      color: rgba(255, 255, 255, 0.88);
+    }
+    /* 菜单栏图标：彩色 App 图标换成单色模板图 */
+    .tray {
+      display: none;
+    }
+    .tray-tpl {
+      display: block;
+      color: rgba(255, 255, 255, 0.88);
+    }
+    /* 窗口：#1e1e1e 底，阴影更重，外加 macOS 深色窗口那圈浅色细描边 */
+    .win {
+      background: #1e1e1e;
+      color: #e5e5e7;
+      box-shadow:
+        0 10px 28px rgba(0, 0, 0, 0.55),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+    .title {
+      background: #2c2c2e;
+      box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.4);
+      color: rgba(235, 235, 245, 0.6);
+    }
+    /* 红黄绿按钮：macOS 深色下颜色基本不变，加一圈很淡的暗边避免发糊 */
+    .title i {
+      box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.35);
+    }
+    /* 地址栏：浅色是白底，深色换成半透明浅灰 */
+    .title .url {
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(235, 235, 245, 0.6);
+    }
+    /* 备忘录深色：深灰底浅色字，不再是黄底 */
+    .notes-body {
+      background: #1e1e1e;
+      color: rgba(255, 255, 255, 0.86);
+    }
+    .notes-body p:first-child {
+      color: #fff;
+      font-weight: 600;
+    }
+    /* 浏览器内容占位块 */
+    .browser-body span {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .browser-body span:first-child {
+      background: rgba(10, 132, 255, 0.24);
+    }
+    /* 终端：比普通窗口更黑一档，和其它窗口拉开 */
+    .w-terminal {
+      background: #141416;
+      color: #d4d4d8;
+    }
+    .w-terminal .title {
+      background: #262628;
+      color: rgba(235, 235, 245, 0.6);
+    }
+    .term-body u {
+      background: #d4d4d8;
+    }
+    /* 提示文字：深色壁纸上用浅橙 */
+    .status {
+      color: #fdba74;
+    }
+    /* 快捷键按钮 / 键帽 */
+    .key {
+      background: rgba(44, 44, 46, 0.88);
+      box-shadow:
+        0 2px 0 rgba(0, 0, 0, 0.5),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+      color: #f5f5f7;
+    }
+    .key kbd {
+      background: #3a3a3c;
+      border-color: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+    .key.hit {
+      animation-name: press-dark;
+    }
+    .pulse {
+      animation-name: pulse-dark;
+    }
+  }
+  /* 深色专用动画：阴影和光圈换成深色下的取值（光圈用 macOS 深色系统橙 #ff9f0a） */
+  @keyframes press-dark {
+    50% {
+      transform: translateY(2px);
+      box-shadow:
+        0 0 0 rgba(0, 0, 0, 0.5),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+  }
+  @keyframes pulse-dark {
+    50% {
+      box-shadow:
+        0 2px 0 rgba(0, 0, 0, 0.5),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+        0 0 0 5px rgba(255, 159, 10, 0.5);
     }
   }
 </style>

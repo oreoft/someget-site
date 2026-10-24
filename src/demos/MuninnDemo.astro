@@ -68,7 +68,7 @@ const post = zh
     <div class="leaf">
       <p class="src"><b class="pf yt">YouTube</b> Tech Talks</p>
       <p class="txt">{zh ? '十分钟讲清楚 Tailscale 的打洞原理' : 'How Tailscale punches through NAT, in 10 minutes'}</p>
-      <div class="thumb" style="background:#2b3a55"></div>
+      <div class="thumb t-net"></div>
     </div>
     <div class="leaf">
       <p class="src"><b class="pf xhs">{zh ? '小红书' : 'Xiaohongshu'}</b> @cook.lab</p>
@@ -107,7 +107,7 @@ const post = zh
     <div class="leaf">
       <p class="src"><b class="pf yt">YouTube</b> Tech Talks</p>
       <p class="txt">{zh ? '十分钟讲清楚 Tailscale 的打洞原理' : 'How Tailscale punches through NAT, in 10 minutes'}</p>
-      <div class="thumb" style="background:#2b3a55"></div>
+      <div class="thumb t-net"></div>
     </div>
   </div>
 
@@ -118,7 +118,7 @@ const post = zh
     <button type="button" class="leaf new pulse" data-go="detail">
       <p class="src"><b class="pf x">X</b> @homelab_dan</p>
       <p class="txt">{post}</p>
-      <div class="pics"><i style="background:#c9d6e6"></i><i style="background:#e6d9c9"></i></div>
+      <div class="pics"><i class="p1"></i><i class="p2"></i></div>
     </button>
     <span class="tip left">{s.tipOpen}</span>
     <div class="leaf">
@@ -132,7 +132,7 @@ const post = zh
     <div class="bar"><button type="button" class="link" data-go="fetched">‹</button><span></span><span class="muted">•••</span></div>
     <p class="src"><b class="pf x">X</b> @homelab_dan · 2h</p>
     <p class="txt big">{post}</p>
-    <div class="pics"><i style="background:#c9d6e6"></i><i style="background:#e6d9c9"></i></div>
+    <div class="pics"><i class="p1"></i><i class="p2"></i></div>
     <div class="tags"><span>#{s.tagDev}</span><span>#{s.tagRead}</span></div>
     <div class="actions"><span>{s.openOriginal}</span><span>{s.editTags}</span></div>
     <p class="sec">{s.whispers}</p>
@@ -282,6 +282,16 @@ const post = zh
     height: 64px;
     border-radius: 10px;
   }
+  /* 缩略图占位色：原来写在内联 style 里，挪成 class 方便深色覆盖，浅色取值不变 */
+  .thumb.t-net {
+    background: #2b3a55;
+  }
+  .pics .p1 {
+    background: #c9d6e6;
+  }
+  .pics .p2 {
+    background: #e6d9c9;
+  }
   .muted {
     color: #8e8aa0;
   }
@@ -427,6 +437,121 @@ const post = zh
   @keyframes blink {
     50% {
       opacity: 0.4;
+    }
+  }
+  /*
+   * 深色外观：中性色照搬 Muninn App 的深色配色（DesignSystem.swift 里 Palette.white 的 dark 值）：
+   *   底 #000、卡片/输入框 #161618、底槽/标签底 #1E1E21、细边 #2A2B30、
+   *   正文 #ECEDF1、次级 #A2A8B5、三级 #6F7584；选中胶囊和 App 一样反色（墨色底 + 黑字）。
+   * 点缀色沿用演示浅色的紫色系，只提亮到深色上看得清的程度（浅色紫色不动）。
+   * 提示文字和脉冲圈跟全站深色的 --accent（#ec5d36）走。
+   * 放在 reduced-motion 前面，保证系统要求减少动效时 animation: none 仍然生效。
+   */
+  @media (prefers-color-scheme: dark) {
+    .mu {
+      background: #000;
+      color: #ecedf1;
+    }
+    .plus {
+      background: #7f6ee0;
+    }
+    .search {
+      background: #1e1e21;
+      color: #6f7584;
+    }
+    .chips span {
+      background: #1e1e21;
+      color: #ecedf1;
+    }
+    .chips .on {
+      background: #ecedf1;
+      color: #000;
+    }
+    /* 卡片：深色上和 App 一样补一圈细边，黑底上才分得开 */
+    .leaf {
+      background: #161618;
+      box-shadow: inset 0 0 0 0.75px #2a2b30;
+    }
+    .leaf.new {
+      outline-color: #9b8cf2;
+    }
+    .src {
+      color: #a2a8b5;
+    }
+    /* X 的深色徽标：黑底在深色卡片上看不见，按 X 自己深色模式改成浅底深字 */
+    .x {
+      background: #e7e9ea;
+      color: #0f1419;
+    }
+    /* YouTube、小红书保持品牌红，白字在深色上本来就清楚；视频缩略图 #2b3a55 本身够深，不改 */
+    /* 浅色的粉彩占位块在黑底上太亮，压暗成同色相的深色 */
+    .pics .p1 {
+      background: #36414f;
+    }
+    .pics .p2 {
+      background: #4a4237;
+    }
+    .muted {
+      color: #6f7584;
+    }
+    /* 弹出层：遮罩更深，表单面板抬成卡片色，顶上一道细亮边分出层次 */
+    .sheet-bg {
+      background: rgba(118, 118, 128, 0.12);
+    }
+    .sheet {
+      background: #161618;
+      box-shadow: 0 -0.5px 0 rgba(255, 255, 255, 0.1);
+    }
+    .field {
+      background: #1e1e21;
+    }
+    .ghost {
+      background: #221d38;
+      color: #a99cf5;
+    }
+    .hint,
+    .link,
+    .actions {
+      color: #a99cf5;
+    }
+    .tags span {
+      background: #221d38;
+      color: #a99cf5;
+    }
+    .sec {
+      color: #a2a8b5;
+    }
+    .note-empty {
+      border-color: rgba(155, 140, 242, 0.4);
+      color: #6f7584;
+    }
+    .note {
+      background: #161618;
+      border-left-color: #9b8cf2;
+      box-shadow: inset 0 0 0 0.75px #2a2b30;
+    }
+    .spinner {
+      border-color: #2f2a48;
+      border-top-color: #9b8cf2;
+    }
+    .again {
+      background: #ecedf1;
+      color: #000;
+    }
+    .tip {
+      color: #ec5d36;
+    }
+    .pulse {
+      animation-name: pulse-dark;
+    }
+  }
+  @keyframes pulse-dark {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(236, 93, 54, 0.5);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba(236, 93, 54, 0);
     }
   }
   @media (prefers-reduced-motion: reduce) {

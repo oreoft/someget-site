@@ -379,6 +379,159 @@ const colors = ['yellow', 'blue', 'green', 'pink', 'purple', 'gray'];
       opacity: 1;
     }
   }
+  /*
+   * 深色模式：照 InStash iOS / macOS 真实的深色外观来还原（浅色部分一个值都没动，这里只做覆盖）。
+   * - 便签色在 App 里是写死的 RGB（InStashCore/Models/NoteColor.swift），没有深色变体，深色下不变暗；
+   *   便签正文强制黑字（iOS 编辑器锁 light、Mac 桌面便签 textColor = black），所以纸面和 Mac 便签保持原色 + 黑字。
+   * - 列表页：底是 systemGroupedBackground（深色 #000），卡片是 secondarySystemGroupedBackground（深色 #1c1c1e），
+   *   便签色只体现在卡片左侧 6px 的竖条上，文字走 label / secondaryLabel 反白。
+   * - 编辑页：整页铺一层便签色 30% 透明，盖在深色 sheet 底（#1c1c1e）上。
+   * - 品牌橙用全站深色的 --accent（#ec5d36），小号提示字再提亮一档，保证在深色底上看得清。
+   */
+  @media (prefers-color-scheme: dark) {
+    .is {
+      background: #000;
+      /* 编辑页底色：iOS 深色 sheet 的深灰。叠便签色会发浑、压低文字对比，便签色只留在纸面上 */
+      --edit-bg: #1c1c1e;
+      --dk-accent: #ec5d36;
+      --dk-accent-text: #ff8a65;
+    }
+
+    /* 列表卡片：深灰卡片 + 左侧便签色竖条（和 SharedNoteRowView 一致） */
+    .is .note {
+      position: relative;
+      padding-left: 18px;
+      background: #1c1c1e;
+      color: #fff;
+      box-shadow: none;
+    }
+    .is .note::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 6px;
+      border-radius: 3px;
+      background: var(--stripe);
+    }
+    .is .note.c-yellow {
+      --stripe: #fbe7a1;
+    }
+    .is .note.c-blue {
+      --stripe: #bfe0fb;
+    }
+    .is .note.c-green {
+      --stripe: #c8efc4;
+    }
+    .is .note.c-pink {
+      --stripe: #fbcbe0;
+    }
+    .is .note.c-purple {
+      --stripe: #ddd0fa;
+    }
+    .is .note.c-gray {
+      --stripe: #e2e2e2;
+    }
+
+    .plus {
+      background: var(--dk-accent);
+    }
+    .muted,
+    .label,
+    .toggle-row small {
+      color: rgba(235, 235, 245, 0.6);
+    }
+
+    /* 编辑页 */
+    .scr[data-screen='edit'] {
+      background: var(--edit-bg);
+    }
+    .paper {
+      color: #111;
+    }
+    .sw {
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+    }
+    .is[data-color='yellow'] .sw.c-yellow,
+    .is[data-color='blue'] .sw.c-blue,
+    .is[data-color='green'] .sw.c-green,
+    .is[data-color='pink'] .sw.c-pink,
+    .is[data-color='purple'] .sw.c-purple,
+    .is[data-color='gray'] .sw.c-gray {
+      /* 选中描边：内圈留缝用页面底色，外圈用提亮的品牌橙 */
+      box-shadow:
+        0 0 0 2px var(--edit-bg),
+        0 0 0 4px var(--dk-accent-text);
+    }
+    .toggle-row {
+      background: rgba(28, 28, 30, 0.72);
+      color: #fff;
+    }
+    .switch {
+      background: rgba(120, 120, 128, 0.32);
+    }
+    .switch::after {
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Mac 桌面：整体压暗成 macOS 深色外观，便签本身不变色 */
+    .mac {
+      background: #10141d;
+    }
+    .desk {
+      background: #2a3a5e;
+      background-image: linear-gradient(160deg, #34497a, #1a2540);
+    }
+    .menubar {
+      background: rgba(30, 30, 32, 0.5);
+      color: #f2f2f7;
+    }
+    .menubar span {
+      background: #f2f2f7;
+    }
+    .sticky {
+      color: #111;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    }
+    .dock {
+      background: rgba(40, 40, 44, 0.5);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+    }
+    .dock i {
+      background: rgba(255, 255, 255, 0.45);
+    }
+    .dock .me {
+      background: #fbe7a1;
+    }
+    .again {
+      background: #2c2c2e;
+      color: #f2f2f7;
+    }
+
+    /* 引导提示字：深色底上提亮；编辑页底色偏亮，再提一档 */
+    .tip {
+      color: var(--dk-accent-text);
+    }
+    .scr[data-screen='edit'] .tip {
+      color: #ffa585;
+    }
+  }
+  /* 深色下的呼吸光圈换成深色品牌橙；只在允许动效时生效，不会盖掉下面的减弱动效设置 */
+  @media (prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference) {
+    .pulse {
+      animation-name: pulse-dark;
+    }
+  }
+  @keyframes pulse-dark {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(236, 93, 54, 0.55);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgba(236, 93, 54, 0);
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .pulse,
     .pop {

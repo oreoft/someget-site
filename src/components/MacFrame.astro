@@ -37,7 +37,10 @@ const { label = 'App demo' } = Astro.props;
   }
   /* 深色页面上黑色边框会糊进背景，描一圈浅边 */
   @media (prefers-color-scheme: dark) {
+    /* 屏幕按 macOS 深色外观换底色和字色 */
     .screen {
+      background: #1e1e1e;
+      color: #e5e5e7;
       box-shadow:
         0 0 0 1px rgba(255, 255, 255, 0.12),
         0 30px 60px rgba(0, 0, 0, 0.5);
