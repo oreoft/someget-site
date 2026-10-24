@@ -74,6 +74,15 @@ const androidIcon =
     cursor: default;
     pointer-events: none;
   }
+  /* 深色底上半透明的橙色会发灰发棕，改成淡橙底 + 橙色描边和字 */
+  @media (prefers-color-scheme: dark) {
+    .soon {
+      opacity: 1;
+      background: rgba(236, 93, 54, 0.12);
+      border-color: rgba(236, 93, 54, 0.45);
+      color: var(--accent);
+    }
+  }
   svg {
     width: 18px;
     height: 18px;

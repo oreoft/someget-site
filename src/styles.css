@@ -12,6 +12,7 @@
   /* 宽屏"纸"外圈的底色 */
   --frame: #e4e3dc;
   --frame-shadow: rgba(30, 30, 20, 0.12);
+  --page-edge: transparent;
   /* 页脚联系区的深色色带 */
   --band: #16171a;
   --band-ink: #f6f6f3;
@@ -29,20 +30,22 @@
 /* 黑暗模式：跟随系统。只换颜色变量，组件里都用变量，不用各自再写一遍 */
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #151619;
-    --ink: #ecebe6;
-    --ink-2: #b1b3b9;
-    --ink-3: #80838b;
-    --line: #2e3036;
+    /* 和浅色一样走暖调：暖石墨色的纸放在更深的底上，靠明度差和一道细亮边分层 */
+    --bg: #1d1c1a;
+    --ink: #f0ede6;
+    --ink-2: #b9b4aa;
+    --ink-3: #888379;
+    --line: #34322e;
     --accent: #ec5d36;
-    --surface: #1e2024;
+    --surface: #262421;
     --accent-hover: #f37a57;
-    --frame: #0c0d0f;
-    --frame-shadow: rgba(0, 0, 0, 0.5);
+    --frame: #0b0b0a;
+    --frame-shadow: rgba(0, 0, 0, 0.6);
+    --page-edge: rgba(255, 245, 230, 0.08);
     /* 页面本身已经是深色，色带改成稍亮一层来区分 */
-    --band: #222429;
-    --band-ink: #ecebe6;
-    --band-ink-2: #a3a6ad;
+    --band: #292724;
+    --band-ink: #f0ede6;
+    --band-ink-2: #a9a49a;
   }
 }
 
@@ -150,6 +153,7 @@ picture > source {
     border-radius: 24px;
     overflow: hidden;
     box-shadow:
+      0 0 0 1px var(--page-edge),
       0 1px 0 rgba(0, 0, 0, 0.04),
       0 24px 60px var(--frame-shadow);
   }
