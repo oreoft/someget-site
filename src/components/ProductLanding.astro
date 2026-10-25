@@ -12,6 +12,7 @@ import MuninnDemo from '../demos/MuninnDemo.astro';
 import InStashDemo from '../demos/InStashDemo.astro';
 import BlinkDemo from '../demos/BlinkDemo.astro';
 import RaijuDemo from '../demos/RaijuDemo.astro';
+import FastZZDemo from '../demos/FastZZDemo.astro';
 import { getProduct } from '../products.js';
 import { ui } from '../i18n.js';
 import loopback from '../content/loopback.js';
@@ -19,14 +20,15 @@ import muninn from '../content/muninn.js';
 import instash from '../content/instash.js';
 import blink from '../content/blink.js';
 import raiju from '../content/raiju.js';
+import fastzz from '../content/fastzz.js';
 
 interface Props {
   id: string;
   lang: 'zh' | 'en';
 }
 
-const contents: Record<string, any> = { loopback, muninn, instash, blink, raiju };
-const demos: Record<string, any> = { loopback: LoopbackDemo, muninn: MuninnDemo, instash: InStashDemo, blink: BlinkDemo, raiju: RaijuDemo };
+const contents: Record<string, any> = { loopback, muninn, instash, blink, raiju, fastzz };
+const demos: Record<string, any> = { loopback: LoopbackDemo, muninn: MuninnDemo, instash: InStashDemo, blink: BlinkDemo, raiju: RaijuDemo, fastzz: FastZZDemo };
 const { id, lang } = Astro.props;
 const product = getProduct(id);
 const c = contents[id][lang];

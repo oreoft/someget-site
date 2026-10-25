@@ -9,13 +9,14 @@ import muninn from '../content/muninn.js';
 import instash from '../content/instash.js';
 import blink from '../content/blink.js';
 import raiju from '../content/raiju.js';
+import fastzz from '../content/fastzz.js';
 
 interface Props {
   id: string;
   lang: 'zh' | 'en';
 }
 
-const contents: Record<string, any> = { loopback, muninn, instash, blink, raiju };
+const contents: Record<string, any> = { loopback, muninn, instash, blink, raiju, fastzz };
 const { id, lang } = Astro.props;
 const product = getProduct(id);
 const policy = contents[id][lang].privacy;

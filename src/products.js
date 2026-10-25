@@ -37,6 +37,23 @@ export const products = [
     },
   },
   {
+    id: 'fastzz',
+    tint: '#3A6FE0',
+    name: 'FastZZ',
+    platforms: ['macOS'],
+    storeUrl: 'https://apps.apple.com/app/id6757905553',
+    zh: {
+      storeName: 'FastZZ：离线语音转文字',
+      tagline: '说出来，就写下。',
+      summary: '在 Mac 上实时把说的话转成文字，带标点，还能顺手翻译。识别和翻译全在本机完成，不用联网，声音不离开你的 Mac。',
+    },
+    en: {
+      storeName: 'FastZZ: Offline Speech to Text',
+      tagline: 'Speak it, see it written.',
+      summary: 'Turn speech into text in real time on your Mac, with punctuation and translation along the way. Recognition and translation run entirely on-device, offline. Your voice stays on your Mac.',
+    },
+  },
+  {
     id: 'blink',
     darkIcon: true,
     tint: '#F0832E',

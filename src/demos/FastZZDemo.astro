@@ -1,0 +1,137 @@
+---
+interface Props { lang: 'zh' | 'en' }
+const { lang } = Astro.props;
+const zh = lang === 'zh';
+const s = zh
+  ? { record: '录音', stop: '停止', translate: '翻译', ready: '点录音，试试语音转文字', listening: '正在聆听…', done: '转写已保留', sample: '示例演示 · 不使用麦克风' }
+  : { record: 'Record', stop: 'Stop', translate: 'Translate', ready: 'Click Record to try speech to text', listening: 'Listening…', done: 'Transcript saved', sample: 'Sample demo · No microphone used' };
+const lines = [
+  { text: '把今天的灵感记下来，明天继续。', translation: '' },
+  { text: 'A little idea can become something wonderful.', translation: '一个小小的想法，也能变成美好的事物。' },
+];
+---
+<div class="fz" data-fastzz-demo data-lines={JSON.stringify(lines)} data-labels={JSON.stringify(s)}>
+  <div class="menubar"><b>FastZZ</b><span>{s.sample}</span></div>
+  <div class="desk">
+    <div class="win">
+      <div class="toolbar">
+        <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="title"><b>FastZZ</b><small>SenseVoice</small></div>
+        <div class="actions">
+          <button class="translate" type="button" aria-pressed="true">{s.translate}</button>
+          <button class="record" type="button" aria-pressed="false">{s.record}</button>
+        </div>
+      </div>
+      <div class="transcript" role="log" aria-label={zh ? '示例转写' : 'Sample transcript'}>
+        {lines.map(() => <div class="sentence"><p class="source"></p><p class="translation" hidden></p></div>)}
+        <p class="placeholder">{s.ready}</p>
+      </div>
+      <div class="status" role="status">{s.ready}</div>
+    </div>
+  </div>
+</div>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-fastzz-demo]').forEach((root) => {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const lines: { text: string; translation: string }[] = JSON.parse(root.dataset.lines!);
+    const labels = JSON.parse(root.dataset.labels!);
+    const record = root.querySelector<HTMLButtonElement>('.record')!;
+    const translate = root.querySelector<HTMLButtonElement>('.translate')!;
+    const status = root.querySelector<HTMLElement>('.status')!;
+    const placeholder = root.querySelector<HTMLElement>('.placeholder')!;
+    const sources = root.querySelectorAll<HTMLElement>('.source');
+    const translations = root.querySelectorAll<HTMLElement>('.translation');
+    let recording = false;
+    let translating = true;
+    let line = 0;
+    let char = 0;
+    let timer: number | undefined;
+    const renderTranslation = () => translations.forEach((el, i) => {
+      el.textContent = lines[i].translation;
+      el.hidden = !translating || !lines[i].translation || sources[i].textContent !== lines[i].text;
+    });
+    const setRecording = (on: boolean) => {
+      recording = on;
+      record.textContent = on ? labels.stop : labels.record;
+      record.setAttribute('aria-pressed', String(on));
+      status.textContent = on ? labels.listening : labels.done;
+      root.classList.toggle('recording', on);
+    };
+    const tick = () => {
+      if (!recording || line >= lines.length) return;
+      const letters = Array.from(lines[line].text);
+      sources[line].textContent = letters.slice(0, ++char).join('');
+      if (char === letters.length) {
+        renderTranslation();
+        line++;
+        char = 0;
+      }
+      timer = window.setTimeout(tick, char === 0 ? 650 : 65);
+    };
+    record.addEventListener('click', () => {
+      if (recording) {
+        window.clearTimeout(timer);
+        setRecording(false);
+        return;
+      }
+      line = 0;
+      char = 0;
+      sources.forEach((el) => { el.textContent = ''; });
+      renderTranslation();
+      placeholder.hidden = true;
+      setRecording(true);
+      tick();
+    });
+    translate.addEventListener('click', () => {
+      translating = !translating;
+      translate.setAttribute('aria-pressed', String(translating));
+      renderTranslation();
+    });
+  });
+</script>
+<style>
+  .fz { position: absolute; inset: 0; display: flex; flex-direction: column; background: linear-gradient(135deg, #edf3ff, #b6cbef); color: #22252b; }
+  .menubar { height: 22px; display: flex; align-items: center; justify-content: space-between; padding: 0 10px; background: #ffffff80; font-size: 10px; }
+  .menubar span { color: #505969; font-size: 9px; }
+  .desk { flex: 1; position: relative; }
+  .win { position: absolute; inset: 7% 5% 9%; display: flex; flex-direction: column; overflow: hidden; border-radius: 9px; background: #fff; box-shadow: 0 10px 28px #0003; }
+  .toolbar { display: flex; align-items: center; gap: 9px; padding: 9px; background: #f3f4f6; border-bottom: 1px solid #e3e5e9; }
+  .lights { display: flex; gap: 4px; }
+  .lights i { width: 7px; height: 7px; border-radius: 50%; background: #ff5f57; }
+  .lights i:nth-child(2) { background: #febc2e; }
+  .lights i:nth-child(3) { background: #28c840; }
+  .title { display: flex; flex-direction: column; font-size: 11px; }
+  .title small { color: #626b79; font-size: 8px; }
+  .actions { display: flex; gap: 5px; margin-left: auto; }
+  button { border: 1px solid #c8cdd7; border-radius: 5px; padding: 4px 8px; background: #fff; color: inherit; font: inherit; font-size: 10px; cursor: pointer; }
+  button:focus-visible { outline: 2px solid #3a6fe0; outline-offset: 2px; }
+  .translate[aria-pressed='true'] { background: #e6edfc; color: #2855b3; border-color: #a5bdf0; }
+  .record { background: #3a6fe0; border-color: #3a6fe0; color: #fff; }
+  .recording .record { background: #c73838; border-color: #c73838; }
+  .transcript { flex: 1; overflow: auto; padding: 12px 14px; font-size: 12px; line-height: 1.6; }
+  .sentence p { margin: 0; }
+  .sentence + .sentence { margin-top: 10px; }
+  .translation { color: #697384; font-size: 11px; }
+  .placeholder { text-align: center; color: #697384; margin-top: 25px; }
+  .status { padding: 5px 10px; border-top: 1px solid #e3e5e9; color: #626b79; font-size: 9px; }
+  .recording .status { color: #2855b3; }
+  @media (prefers-color-scheme: dark) {
+    .fz { background: linear-gradient(135deg, #171e2b, #263c60); color: #f0f1f4; }
+    .menubar { background: #1e1e1e99; }
+    .menubar span, .title small, .status, .translation, .placeholder { color: #a6afbf; }
+    .win { background: #1e1e1e; box-shadow: 0 0 0 1px #ffffff1a, 0 10px 28px #0008; }
+    .toolbar { background: #2a2a2a; border-color: #ffffff1a; }
+    button { background: #38383b; border-color: #56565b; }
+    .translate[aria-pressed='true'] { background: #273e67; color: #c1d4ff; border-color: #496aa5; }
+    .record { background: #3a6fe0; border-color: #3a6fe0; }
+    .status { border-color: #ffffff1a; }
+    .recording .status { color: #a8c6ff; }
+  }
+  @media (max-width: 420px) {
+    .lights { display: none; }
+    .toolbar { gap: 5px; padding: 7px; }
+    button { padding: 4px 6px; }
+    .transcript { padding: 9px; font-size: 11px; }
+  }
+</style>
