@@ -1,0 +1,683 @@
+---
+// Herdsman 演示：用 HTML/CSS 画出 Mac 窗口和 iPhone 的真实界面，数据全是假的，但每个按钮、输入框都能用。
+// 两台设备按 App 原生尺寸画（Mac 1024×680、13px 正文；iPhone 390×844、系统字号），再整体等比缩放进页面。
+// Mac 和 iPhone 共用一份状态：一边回答、发消息，另一边马上看到。地址带 ?tour 时自己点一遍。
+interface Props { lang: 'zh' | 'en' }
+const { lang } = Astro.props;
+---
+<div class="hd" data-herdsman-demo data-lang={lang}>
+  <div class="dev mac-dev"><div class="stage" data-stage="mac"></div></div>
+  <div class="dev phone-dev"><div class="bezel"><div class="screen"><div class="stage" data-stage="phone"></div></div></div></div>
+  <p class="toast" aria-live="polite"></p>
+  <i class="cursor" aria-hidden="true"></i>
+</div>
+
+<script>
+  type Lang = 'zh' | 'en';
+  type Status = 'blocked' | 'working' | 'done' | 'idle';
+  type Run = { t: 'run'; cmd: string; start: number; end?: number; stopped?: boolean };
+  type Item =
+    | { t: 'user'; text: string; files?: string[] }
+    | { t: 'tools'; open: boolean; zh: string; en: string; rows: [string, string, string][] }
+    | { t: 'md'; html: Record<Lang, string> }
+    | { t: 'text'; text: string }
+    | { t: 'notice'; text: string }
+    | { t: 'prompt'; cmd: string; answered?: number }
+    | Run
+    | { t: 'thinking' };
+  interface Conv { id: string; ws: string; machine: 'mac' | 'ws'; title: Record<Lang, string>; agent: string; status: Status; unread?: boolean; ago: number; items: Item[]; term: string[] }
+
+  const T = {
+    zh: {
+      search: '搜索', searchConv: '搜索对话', all: '全部', allComputers: '所有电脑', thisMac: '这台 Mac', workstation: '工作站',
+      needsYou: '需要你处理', placeholder: '给 Claude Code 发消息', placeholderOther: '给 agent 发消息', hint: '↩ 发送，⇧↩ 换行', cmd: '输入命令',
+      showTerm: '看终端', bash: 'Bash command', proceed: 'Do you want to proceed?', answered: '已回答', thinking: '正在思考…', stopped: '已中断',
+      copied: '已复制', attach: '已添加附件', newChat: '新对话', direct: '直连 · 8 ms', live: '实时画面 · 点按即操作', done: '完成',
+      settings: '设置', paired: '已配对的 Mac', close: '关闭', now: '刚刚', min: '分', hr: '小时', sentTerm: '（演示）已发送到终端',
+      opts: ['Yes', "Yes, and don't ask again for xcodebuild commands", 'No, and tell Claude what to do differently'],
+      reply: (q: string) => `收到：「${q}」。我先看一下相关的代码，改好后跑一遍测试再告诉你。`,
+      built: '编译成功，没有新的警告。可以在模拟器里试一下预警推送了。', skip: '好的，这次先不编译。需要的时候再叫我。',
+      tourMsg: '顺便把设置里的开关也加上',
+    },
+    en: {
+      search: 'Search', searchConv: 'Search Conversations', all: 'All', allComputers: 'All Computers', thisMac: 'This Mac', workstation: 'Workstation',
+      needsYou: 'Needs You', placeholder: 'Message Claude Code', placeholderOther: 'Message the agent', hint: '↩ to send, ⇧↩ for new line', cmd: 'Type a command',
+      showTerm: 'Show Terminal', bash: 'Bash command', proceed: 'Do you want to proceed?', answered: 'Answered', thinking: 'Thinking…', stopped: 'Interrupted',
+      copied: 'Copied', attach: 'Attachment added', newChat: 'New chat', direct: 'Direct · 8 ms', live: 'Live · tap to control', done: 'Done',
+      settings: 'Settings', paired: 'Paired Macs', close: 'Close', now: 'now', min: 'm', hr: 'h', sentTerm: '(demo) sent to the terminal',
+      opts: ['Yes', "Yes, and don't ask again for xcodebuild commands", 'No, and tell Claude what to do differently'],
+      reply: (q: string) => `Got it: "${q}". I'll look at the relevant code first, then run the tests and report back.`,
+      built: 'Build succeeded with no new warnings. You can try the alert notifications in the simulator now.', skip: "OK, I'll skip the build for now. Call me when you need it.",
+      tourMsg: 'Add the toggle in Settings too',
+    },
+  };
+
+  const md = (zh: string, en: string): Item => ({ t: 'md', html: { zh, en } });
+  const code = (label: string) => `<div class="code"><span class="lang">swift</span><button type="button" class="copy" data-act="copy" aria-label="${label}"></button><pre><span class="k">func</span> shouldNotify(_ alert: <span class="ty">WeatherAlert</span>) -&gt; <span class="ty">Bool</span> {
+    alert.level &gt;= .orange &amp;&amp; !delivered.contains(alert.id)
+}</pre></div>`;
+  const now = Date.now();
+  const conversations = (): Conv[] => [
+    {
+      id: 'c1', ws: 'weather-app', machine: 'mac', agent: 'claude', status: 'blocked', ago: 0.5,
+      title: { zh: '接入恶劣天气预警推送', en: 'Add severe weather alerts' },
+      items: [
+        { t: 'user', text: '' },
+        { t: 'tools', open: false, zh: '运行了 1 条命令，读了 1 个文件，改了 1 个文件', en: 'Ran 1 command, read 1 file, edited 1 file',
+          rows: [['Read', 'Sources/Alerts/AlertService.swift', '96'], ['Edit', 'Sources/Alerts/AlertService.swift', '+3 −1'], ['Bash', 'swift test', '24 ✓']] },
+        md(`<p>预警推送接好了：<b>拉取预警 → 按级别过滤 → 本地通知 → 点开跳到详情</b>。</p>
+<h4>改了什么</h4><ol><li><code>AlertService</code> 每 15 分钟拉一次，后台刷新时也会拉</li><li>只推橙色及以上，同一条预警不重复推</li><li>通知点开直接进预警详情</li></ol>
+<table><tr><th>级别</th><th>推送</th><th>声音</th></tr><tr><td>红色</td><td>是</td><td>紧急</td></tr><tr><td>橙色</td><td>是</td><td>默认</td></tr><tr><td>黄色</td><td>否</td><td>无</td></tr></table>
+${code('复制')}<blockquote>注意：模拟器收不到后台刷新，真机上再验一次。</blockquote>
+<ul class="todo"><li><label><input type="checkbox" data-act="check" checked> 预警推送</label></li><li><label><input type="checkbox" data-act="check"> 设置里的开关</label></li></ul>`,
+        `<p>Severe weather alerts are in: <b>fetch alerts → filter by level → local notification → open to details</b>.</p>
+<h4>What changed</h4><ol><li><code>AlertService</code> fetches every 15 minutes, including background refresh</li><li>Only orange and above notify, and each alert notifies once</li><li>Tapping a notification opens the alert details</li></ol>
+<table><tr><th>Level</th><th>Notify</th><th>Sound</th></tr><tr><td>Red</td><td>Yes</td><td>Critical</td></tr><tr><td>Orange</td><td>Yes</td><td>Default</td></tr><tr><td>Yellow</td><td>No</td><td>None</td></tr></table>
+${code('Copy')}<blockquote>Note: the simulator skips background refresh, so check once on a device.</blockquote>
+<ul class="todo"><li><label><input type="checkbox" data-act="check" checked> Alert notifications</label></li><li><label><input type="checkbox" data-act="check"> Toggle in Settings</label></li></ul>`),
+        { t: 'user', text: '' },
+        { t: 'prompt', cmd: "xcodebuild -scheme Weather -destination 'generic/platform=iOS' build" },
+      ],
+      term: ['\x1b[g]❯\x1b[0] swift test', '\x1b[d]Building for debugging...\x1b[0]', 'Compiling Weather AlertService.swift', "Test Suite 'AlertServiceTests' passed",
+        '\x1b[g]Executed 24 tests, with 0 failures (0 unexpected) in 0.18 seconds\x1b[0]', '', '\x1b[o]╭─ Bash command ─────────────────────────────╮\x1b[0]',
+        '\x1b[o]│\x1b[0]  xcodebuild -scheme Weather build           \x1b[o]│\x1b[0]', '\x1b[o]╰────────────────────────────────────────────╯\x1b[0]',
+        ' Do you want to proceed?', ' \x1b[c]❯ 1. Yes\x1b[0]', "   2. Yes, and don't ask again for xcodebuild commands", '   3. No, and tell Claude what to do differently'],
+    },
+    {
+      id: 'c2', ws: 'weather-app', machine: 'mac', agent: 'codex', status: 'working', ago: 0.1,
+      title: { zh: '给定位模块补单测', en: 'Tests for the location module' },
+      items: [{ t: 'user', text: '' }, md('<p>先补了 6 个边界用例：没授权、只给大致位置、坐标在海上、跨时区……正在跑测试。</p>', '<p>Added 6 edge cases first: no permission, approximate location only, coordinates at sea, crossing time zones… running the tests now.</p>'),
+        { t: 'run', cmd: 'swift test --filter LocationTests', start: now - 42_000 }],
+      term: ['\x1b[g]❯\x1b[0] swift test --filter LocationTests', '\x1b[d]Building for debugging...\x1b[0]', "Test Suite 'LocationTests' started"],
+    },
+    {
+      id: 'c3', ws: 'weather-app', machine: 'mac', agent: 'pi', status: 'done', unread: true, ago: 5,
+      title: { zh: '修好深色模式的图标', en: 'Fix dark mode icons' },
+      items: [{ t: 'user', text: '' }, md('<p>深色模式下的 12 个天气图标都换成了模板图，跟着系统颜色走。<code>Assets.xcassets</code> 里删掉了旧的深色副本。</p>', '<p>All 12 weather icons now use template images and follow the system colors in dark mode. Removed the old dark copies from <code>Assets.xcassets</code>.</p>')],
+      term: ['\x1b[g]❯\x1b[0] git diff --stat', ' Assets.xcassets | 24 \x1b[g]+\x1b[0]\x1b[r]-----------\x1b[0]'],
+    },
+    {
+      id: 'c4', ws: 'api-server', machine: 'mac', agent: 'claude', status: 'idle', ago: 180,
+      title: { zh: '给接口加限流', en: 'Rate limiting for the API' },
+      items: [{ t: 'user', text: '' }, md('<p>按令牌桶加好了：每个 key 每分钟 60 次，超出返回 <code>429</code> 并带 <code>Retry-After</code>。</p>', '<p>Added a token bucket: 60 requests per minute per key, returning <code>429</code> with <code>Retry-After</code> when exceeded.</p>')],
+      term: ['\x1b[g]❯\x1b[0] npm test', '\x1b[g]✓\x1b[0] rate limit returns 429 after 60 requests'],
+    },
+    {
+      id: 'c5', ws: 'api-server', machine: 'mac', agent: 'zsh', status: 'idle', ago: 1560,
+      title: { zh: 'zsh', en: 'zsh' }, items: [],
+      term: ['\x1b[g]❯\x1b[0] ls', 'README.md  package.json  src  test'],
+    },
+    {
+      id: 'c6', ws: 'landing', machine: 'mac', agent: 'codex', status: 'idle', ago: 4320,
+      title: { zh: '首页改版', en: 'Homepage redesign' },
+      items: [{ t: 'user', text: '' }, md('<p>首屏换成了大标题加两个按钮，图片改成懒加载，首屏体积小了 38%。</p>', '<p>The hero is now a large headline with two buttons, and images load lazily. The first screen is 38% smaller.</p>')],
+      term: ['\x1b[g]❯\x1b[0] npm run build', '\x1b[g]✓\x1b[0] built in 1.84s'],
+    },
+    {
+      id: 'c7', ws: 'ml-pipeline', machine: 'ws', agent: 'claude', status: 'working', ago: 1,
+      title: { zh: '清洗训练数据', en: 'Clean up training data' },
+      items: [{ t: 'user', text: '' }, md('<p>去重和空值处理写好了，正在清洗全量数据。</p>', '<p>Dedupe and null handling are done. Cleaning the full dataset now.</p>'),
+        { t: 'run', cmd: 'python clean.py --all', start: now - 95_000 }],
+      term: ['\x1b[g]❯\x1b[0] python clean.py --all', 'rows: 1,204,331  duplicates: 18,442'],
+    },
+    {
+      id: 'c8', ws: 'ml-pipeline', machine: 'ws', agent: 'pi', status: 'done', ago: 2880,
+      title: { zh: '汇总训练日志', en: 'Summarize training logs' },
+      items: [{ t: 'user', text: '' }, md('<p>第 3 轮验证集准确率最高（91.4%），之后开始过拟合，建议在第 3 轮停。</p>', '<p>Validation accuracy peaks at epoch 3 (91.4%) and overfits after that. Stopping at epoch 3 is recommended.</p>')],
+      term: ['\x1b[g]❯\x1b[0] python summarize.py logs/', 'best epoch: 3  val_acc: 0.914'],
+    },
+  ];
+  // 每段对话的开场提问
+  const asks: Record<string, Record<Lang, string>> = {
+    c1: { zh: '加上恶劣天气预警推送，橙色以上才推，同一条别重复推。', en: 'Add severe weather alerts. Only notify for orange and above, and never twice for the same alert.' },
+    c1b: { zh: '跑一下 iOS 的编译', en: 'Run the iOS build' },
+    c2: { zh: '给定位模块补单测，边界情况多写几个。', en: 'Add unit tests for the location module, with plenty of edge cases.' },
+    c3: { zh: '深色模式下有些图标看不清，修一下。', en: 'Some icons are hard to see in dark mode. Please fix them.' },
+    c4: { zh: '给公开接口加限流。', en: 'Add rate limiting to the public API.' },
+    c6: { zh: '首页改版，首屏要更轻。', en: 'Redesign the homepage and make the first screen lighter.' },
+    c7: { zh: '把训练数据清洗一遍，去重、补空值。', en: 'Clean up the training data: dedupe and fill nulls.' },
+    c8: { zh: '汇总一下这次训练的日志，看哪一轮最好。', en: 'Summarize the training logs and find the best epoch.' },
+  };
+
+  // ---------- 小图标 ----------
+  const svg = (d: string) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+  const I = {
+    search: svg('M10.5 4a6.5 6.5 0 0 1 5.2 10.4l4.2 4.2-1.4 1.4-4.2-4.2A6.5 6.5 0 1 1 10.5 4Zm0 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z'),
+    compose: svg('M5 19h14v2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7v2H5v14Zm12.6-16.4 2.8 2.8L11.8 14H9v-2.8l8.6-8.6Z'),
+    sidebar: svg('M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 2v12h5V6H4Zm7 0v12h9V6h-9Z'),
+    chat: svg('M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 2v10h2v2l2.5-2H20V6H4Zm3 3h10v2H7V9Zm0 3h7v2H7v-2Z'),
+    term: svg('M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5Zm2 0v14h14V5H5Zm2.3 3.3L11 12l-3.7 3.7-1.4-1.4L8.2 12 5.9 9.7l1.4-1.4ZM12 15h5v2h-5v-2Z'),
+    display: svg('M3 4h18a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-7v2h3v2H7v-2h3v-2H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Zm1 2v9h16V6H4Z'),
+    clip: svg('M16.5 6.5v9a4.5 4.5 0 0 1-9 0V6a3 3 0 0 1 6 0v8.5a1.5 1.5 0 0 1-3 0V7h1.5v7.5V6a1.5 1.5 0 0 0-3 0v9.5a3 3 0 0 0 6 0v-9h1.5Z'),
+    up: svg('M12 4l7 7-1.4 1.4L13 7.8V20h-2V7.8l-4.6 4.6L5 11l7-7Z'),
+    stop: svg('M7 7h10v10H7z'),
+    back: svg('M15.4 4.6 8 12l7.4 7.4-1.4 1.4L5.2 12l8.8-8.8 1.4 1.4Z'),
+    chev: svg('M7.4 9 12 13.6 16.6 9 18 10.4l-6 6-6-6L7.4 9Z'),
+    right: svg('M9.4 6 15.4 12l-6 6L8 16.6l4.6-4.6L8 7.4 9.4 6Z'),
+    gear: svg('M12 8.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Zm8.4 2.3-1.8-.4a6.8 6.8 0 0 0-.7-1.7l1-1.6-1.9-1.9-1.6 1a6.8 6.8 0 0 0-1.7-.7l-.4-1.8h-2.6l-.4 1.8a6.8 6.8 0 0 0-1.7.7l-1.6-1-1.9 1.9 1 1.6a6.8 6.8 0 0 0-.7 1.7l-1.8.4v2.6l1.8.4c.2.6.4 1.2.7 1.7l-1 1.6 1.9 1.9 1.6-1c.5.3 1.1.5 1.7.7l.4 1.8h2.6l.4-1.8c.6-.2 1.2-.4 1.7-.7l1.6 1 1.9-1.9-1-1.6c.3-.5.5-1.1.7-1.7l1.8-.4v-2.6Z'),
+    more: svg('M6 10.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z'),
+    plus: svg('M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z'),
+    check: svg('M9.5 16.2 5.3 12l-1.4 1.4 5.6 5.6L20.1 8.4 18.7 7 9.5 16.2Z'),
+    close: svg('M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6 10.6 12 5 6.4 6.4 5Z'),
+    wifi: svg('M12 18.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 13c2 0 3.8.8 5 2.1l-1.4 1.4A5 5 0 0 0 12 15a5 5 0 0 0-3.6 1.5L7 15.1A7 7 0 0 1 12 13Zm0-5c3.4 0 6.4 1.4 8.5 3.6l-1.4 1.4A9.9 9.9 0 0 0 12 10a9.9 9.9 0 0 0-7.1 3L3.5 11.6A12 12 0 0 1 12 8Z'),
+  };
+  const agentIcon = (a: string) => ({ claude: '<i class="ag claude">✱</i>', codex: '<i class="ag codex">&lt;/&gt;</i>', pi: '<i class="ag pi">π</i>' } as Record<string, string>)[a] ?? '<i class="ag zsh">&gt;_</i>';
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+  const ansi = (s: string) => esc(s).replace(/\x1b\[(\w)\]/g, (_, k) => (k === '0' ? '</span>' : `<span class="a-${k}">`));
+
+  document.querySelectorAll<HTMLElement>('[data-herdsman-demo]').forEach((root) => {
+    if (root.dataset.ready) return;
+    root.dataset.ready = '1';
+    const lang = (root.dataset.lang as Lang) ?? 'zh';
+    const t = T[lang];
+    const convs = conversations();
+    for (const c of convs) c.items.forEach((it, i) => { if (it.t === 'user') it.text = asks[i > 0 && c.id === 'c1' ? 'c1b' : c.id]?.[lang] ?? ''; });
+    // 共享状态：两台设备看的是同一份对话
+    const st = {
+      sel: 'c1', macView: 'chat' as 'chat' | 'term', sidebar: true, query: '', machine: 'all' as 'all' | 'mac' | 'ws', chip: 'all', menu: false,
+      phone: 'list' as 'list' | 'chat' | 'term' | 'screen', pquery: '', pchip: 'all', sheet: false, attach: {} as Record<string, boolean>, newCount: 0,
+    };
+    const conv = (id = st.sel) => convs.find((c) => c.id === id)!;
+    const ago = (m: number) => (m < 1 ? t.now : m < 60 ? `${Math.round(m)} ${t.min}` : m < 1440 ? `${Math.round(m / 60)} ${t.hr}`
+      : new Date(now - m * 60_000).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US', { weekday: 'short' }));
+    const machineLabel = (c: Conv) => (c.machine === 'mac' ? t.thisMac : t.workstation);
+    const toastEl = root.querySelector<HTMLElement>('.toast')!;
+    let toastTimer = 0;
+    const toast = (msg: string) => { toastEl.textContent = msg; root.classList.add('toasting'); clearTimeout(toastTimer); toastTimer = window.setTimeout(() => root.classList.remove('toasting'), 1600); };
+
+    // ---------- 渲染 ----------
+    const filtered = (q: string, chip: string, machine: string) => convs.filter((c) =>
+      (machine === 'all' || c.machine === machine) && (chip === 'all' || c.ws === chip) && (!q || c.title[lang].toLowerCase().includes(q.toLowerCase()) || c.ws.includes(q.toLowerCase())));
+    const dot = (c: Conv) => c.status === 'blocked' ? '<i class="dot o"></i>' : c.status === 'working' ? '<i class="spin"></i>' : c.unread ? '<i class="dot b"></i>' : '<i class="dot n"></i>';
+    const row = (c: Conv, phone: boolean, needs = false) => `<button type="button" class="row${c.id === st.sel && !phone ? ' sel' : ''}" data-act="open" data-id="${c.id}">${dot(c)}${agentIcon(c.agent)}<span class="rt"><b>${esc(c.title[lang])}</b>${needs || phone ? `<small>${phone ? machineLabel(c) + ' · ' : ''}${c.ws}</small>` : c.machine === 'ws' ? `<small>${t.workstation}</small>` : ''}</span><span class="tm">${ago(c.ago)}</span></button>`;
+    const groups = (list: Conv[], phone: boolean) => {
+      const needs = list.filter((c) => c.status === 'blocked');
+      let h = needs.length ? `<p class="sec"><i class="dot o"></i>${t.needsYou} <em>${needs.length}</em></p><div class="grp">${needs.map((c) => row(c, phone, true)).join('')}</div>` : '';
+      for (const ws of [...new Set(list.map((c) => c.ws))]) {
+        const rows = list.filter((c) => c.ws === ws && c.status !== 'blocked');
+        if (!rows.length) continue;
+        const m = rows[0].machine === 'ws' ? t.workstation : t.thisMac;
+        h += `<p class="sec">${phone ? m + ' · ' : ''}${ws}</p><div class="grp">${rows.map((c) => row(c, phone)).join('')}</div>`;
+      }
+      return h;
+    };
+    const chips = (active: string, act: string, machine: string) => {
+      const wss = [...new Set(convs.filter((c) => machine === 'all' || c.machine === machine).map((c) => c.ws))];
+      const blocked = (ws: string) => convs.some((c) => (ws === 'all' || c.ws === ws) && (machine === 'all' || c.machine === machine) && c.status === 'blocked');
+      return [['all', t.all], ...wss.map((w) => [w, w])].map(([k, l]) => `<button type="button" class="chip${active === k ? ' on' : ''}" data-act="${act}" data-k="${k}">${blocked(k) ? '<i class="dot o"></i>' : ''}${l}</button>`).join('');
+    };
+    const timer = (it: Run) => { const s = Math.floor(((it.end ?? Date.now()) - it.start) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+    const items = (c: Conv) => c.items.map((it, i) => {
+      switch (it.t) {
+        case 'user': return `<div class="u"><p>${esc(it.text)}${(it.files ?? []).map((f) => `<span class="file">${I.clip}${f}</span>`).join('')}</p></div>`;
+        case 'tools': return `<div class="tools${it.open ? ' open' : ''}"><button type="button" class="tsum" data-act="tools" data-i="${i}">${it[lang]} ${I.right}</button>${it.open ? `<div class="tlist">${it.rows.map(([n, d, x]) => `<p><span class="ok">${I.check}</span><b>${n}</b> <code>${d}</code> <em>${x}</em></p>`).join('')}</div>` : ''}</div>`;
+        case 'md': return `<div class="md">${it.html[lang]}</div>`;
+        case 'text': return `<div class="md"><p>${esc(it.text)}</p></div>`;
+        case 'notice': return `<p class="notice"><span>${esc(it.text)}</span></p>`;
+        case 'thinking': return `<p class="think"><i class="spin"></i>${t.thinking}</p>`;
+        case 'run': return `<p class="run">${it.end ? (it.stopped ? '<span class="x">■</span>' : `<span class="ok">${I.check}</span>`) : '<i class="spin"></i>'}<b>Bash</b><code>${esc(it.cmd)}</code><span class="tmr" data-timer="${c.id}:${i}">${timer(it)}</span></p>`;
+        case 'prompt': return it.answered != null ? '' : `<div class="prompt"><p class="ph"><span><i class="dot o"></i>${t.needsYou}</span><button type="button" data-act="mterm">${t.showTerm}</button></p>
+          <p class="pk">${t.bash}</p><code class="pc">${esc(it.cmd)}</code><p class="pq">${t.proceed}</p>
+          ${t.opts.map((o, k) => `<button type="button" class="opt${k === 0 ? ' cur' : ''}" data-act="answer" data-k="${k}"><i class="radio"></i><span>${esc(o)}</span><em>${k + 1}</em></button>`).join('')}</div>`;
+      }
+      return '';
+    }).join('');
+    const busy = (c: Conv) => c.items.some((it) => (it.t === 'run' && !it.end) || it.t === 'thinking');
+    const composer = (dev: string, c: Conv) => `<div class="comp">
+      ${st.attach[dev] ? `<span class="file">${I.clip}screenshot.png<button type="button" data-act="unattach" data-dev="${dev}" aria-label="remove">${I.close}</button></span>` : ''}
+      <textarea rows="1" data-input="${dev}" placeholder="${c.agent === 'claude' ? t.placeholder : t.placeholderOther}"${dev === 'mirror' ? ' tabindex="-1"' : ''}></textarea>
+      <div class="cb"><button type="button" class="ib" data-act="attach" data-dev="${dev}" aria-label="attach">${dev === 'phone' ? I.plus : I.clip}</button>${dev !== 'phone' ? `<small>${t.hint}</small>` : ''}
+      ${busy(c) ? `<button type="button" class="send stop" data-act="stop" aria-label="stop">${I.stop}</button>` : ''}<button type="button" class="send" data-act="send" data-dev="${dev}" aria-label="send">${I.up}</button></div></div>`;
+    const termView = (c: Conv, dev: string) => `<div class="term"><pre>${c.term.map(ansi).join('\n')}</pre><form class="tin" data-dev="${dev}"><span>❯</span><input data-tin="${dev}" placeholder="${t.cmd}" autocomplete="off"${dev === 'mirror' ? ' tabindex="-1"' : ''}></form></div>`;
+
+    const macHTML = (mirror = false) => {
+      const c = conv();
+      const list = filtered(st.query, st.chip, st.machine);
+      const mLabel = st.machine === 'all' ? t.allComputers : st.machine === 'mac' ? t.thisMac : t.workstation;
+      const sbBtn = `<button type="button" class="ib" data-act="sidebar" aria-label="sidebar">${I.sidebar}</button>`;
+      return `<div class="mac${st.sidebar ? '' : ' nosb'}">
+        <aside class="sb"><div class="tl"><i></i><i></i><i></i><span></span><button type="button" class="ib" data-act="new" aria-label="${t.newChat}">${I.compose}</button>${sbBtn}</div>
+          <label class="sf">${I.search}<input data-q="${mirror ? 'mirror' : 'mac'}" value="${esc(st.query)}" placeholder="${t.search}"${mirror ? ' tabindex="-1"' : ''}></label>
+          <div class="mh"><button type="button" class="mb" data-act="menu">${mLabel} ${I.chev}</button><span class="ib">${I.more}</span>
+            ${st.menu ? `<div class="menu">${(['all', 'mac', 'ws'] as const).map((k) => `<button type="button" data-act="machine" data-k="${k}">${st.machine === k ? I.check : '<i></i>'}${k === 'all' ? t.allComputers : k === 'mac' ? t.thisMac : t.workstation}</button>`).join('')}</div>` : ''}</div>
+          <div class="chips">${chips(st.chip, 'chip', st.machine)}</div>
+          <div class="list">${groups(list, false)}</div></aside>
+        <section class="main"><header>${st.sidebar ? '' : `<div class="tl small"><i></i><i></i><i></i>${sbBtn}</div>`}<div class="tt"><b>${esc(c.title[lang])}</b><small>${c.ws}</small></div>
+          <div class="seg"><button type="button" class="${st.macView === 'chat' ? 'on' : ''}" data-act="mchat" aria-label="chat">${I.chat}</button><button type="button" class="${st.macView === 'term' ? 'on' : ''}" data-act="mterm" aria-label="terminal">${I.term}</button></div></header>
+          ${st.macView === 'chat' ? `<div class="scroll"><div class="tr">${items(c)}</div></div>${composer(mirror ? 'mirror' : 'mac', c)}` : termView(c, mirror ? 'mirror' : 'mac')}</section></div>`;
+    };
+    const phoneHTML = () => {
+      const c = conv();
+      const bar = '<div class="sbar"><b>9:41</b><i class="island"></i><span class="si"><i></i><i></i><i></i><i></i><b class="bat"></b></span></div>';
+      if (st.phone === 'screen') {
+        return `${bar}<div class="p-screen"><div class="pbar dark"><button type="button" class="pill" data-act="pback">${I.close}${t.done}</button><div class="tt"><b>MacBook Pro</b><small>${I.wifi}${t.direct}</small></div></div>
+          <div class="mirror"><div class="mirror-in">${macHTML(true)}</div></div><p class="live">● ${t.live}</p>
+          <div class="keys">${['esc', 'tab', '⌘C', '⌘V', '⌘Z'].map((k) => `<button type="button" data-act="key" data-k="${k}">${k}</button>`).join('')}</div></div>`;
+      }
+      if (st.phone === 'list') {
+        const list = filtered(st.pquery, st.pchip, 'all');
+        return `${bar}<div class="p-list"><div class="pbar"><button type="button" class="circle" data-act="gear" aria-label="${t.settings}">${I.gear}</button><b class="mt">MacBook Pro ${I.chev}</b>
+          <span class="cap"><button type="button" data-act="screen" aria-label="screen">${I.display}</button><button type="button" data-act="new" aria-label="${t.newChat}">${I.compose}</button></span></div>
+          <label class="sf">${I.search}<input data-q="phone" value="${esc(st.pquery)}" placeholder="${t.searchConv}"></label><p class="net">${I.wifi}${t.direct}</p>
+          <div class="chips">${chips(st.pchip, 'pchip', 'all')}</div><div class="list">${groups(list, true)}</div>
+          ${st.sheet ? `<div class="sheet"><p class="sh"><b>${t.settings}</b><button type="button" data-act="gear">${t.close}</button></p><p class="sec">${t.paired}</p><div class="grp"><p class="row">${I.display}<span class="rt"><b>MacBook Pro</b><small>${t.direct}</small></span>${I.check}</p></div></div>` : ''}</div>`;
+      }
+      return `${bar}<div class="p-chat"><div class="pbar"><button type="button" class="circle" data-act="pback" aria-label="back">${I.back}</button><div class="tt"><b>${esc(c.title[lang])}</b><small>${c.ws}</small></div>
+        <span class="cap"><button type="button" class="${st.phone === 'term' ? 'on' : ''}" data-act="pterm" aria-label="terminal">${I.term}</button><button type="button" data-act="screen" aria-label="screen">${I.display}</button></span></div>
+        ${st.phone === 'term' ? termView(c, 'phone') : `<div class="scroll"><div class="tr">${items(c)}</div></div>${composer('phone', c)}`}</div>`;
+    };
+
+    const macStage = root.querySelector<HTMLElement>('[data-stage="mac"]')!;
+    const phoneStage = root.querySelector<HTMLElement>('[data-stage="phone"]')!;
+    // 重画时保住输入框里正在打的字和焦点
+    const render = () => {
+      const keep = [...root.querySelectorAll<HTMLTextAreaElement>('textarea[data-input], input[data-tin]')].map((x) => [x.dataset.input ? `textarea[data-input="${x.dataset.input}"]` : `input[data-tin="${x.dataset.tin}"]`, x.value] as const);
+      const f = document.activeElement as HTMLInputElement | null;
+      const mine = f && root.contains(f);
+      const fkey = mine ? (f!.dataset.input ? `textarea[data-input="${f!.dataset.input}"]` : f!.dataset.q ? `input[data-q="${f!.dataset.q}"]` : f!.dataset.tin ? `input[data-tin="${f!.dataset.tin}"]` : '') : '';
+      const fpos = mine && typeof f!.selectionStart === 'number' ? f!.selectionStart : null;
+      macStage.innerHTML = macHTML();
+      phoneStage.innerHTML = phoneHTML();
+      for (const [sel, v] of keep) { const x = root.querySelector<HTMLInputElement>(sel); if (x) x.value = v; }
+      if (fkey) { const x = root.querySelector<HTMLInputElement>(fkey); if (x) { x.focus({ preventScroll: true }); if (fpos != null) x.setSelectionRange(fpos, fpos); } }
+      root.querySelectorAll<HTMLElement>('.scroll, .term pre').forEach((s) => (s.scrollTop = s.scrollHeight));
+    };
+
+    // ---------- 动作 ----------
+    const answer = (k: number) => {
+      const c = conv();
+      const p = c.items.find((it) => it.t === 'prompt' && it.answered == null) as Extract<Item, { t: 'prompt' }> | undefined;
+      if (!p) return;
+      p.answered = k;
+      c.items.push({ t: 'notice', text: `${t.answered}: ${t.opts[k].split(',')[0]}` });
+      c.term.push(` \x1b[c]❯ ${k + 1}. ${t.opts[k]}\x1b[0]`);
+      if (k === 2) { c.status = 'idle'; c.items.push({ t: 'text', text: t.skip }); render(); return; }
+      c.status = 'working';
+      const run: Run = { t: 'run', cmd: p.cmd, start: Date.now() };
+      c.items.push(run);
+      render();
+      setTimeout(() => {
+        if (run.end) return;
+        run.end = Date.now();
+        c.status = 'done';
+        c.items.push({ t: 'text', text: t.built });
+        c.term.push('\x1b[g]** BUILD SUCCEEDED **\x1b[0]');
+        render();
+      }, 6000);
+    };
+    const send = (dev: string) => {
+      const box = root.querySelector<HTMLTextAreaElement>(`textarea[data-input="${dev}"]`);
+      const text = box?.value.trim() ?? '';
+      if (!text && !st.attach[dev]) return;
+      const c = conv();
+      c.items.push({ t: 'user', text, files: st.attach[dev] ? ['screenshot.png'] : [] });
+      c.term.push(`\x1b[g]❯\x1b[0] ${text}`);
+      st.attach[dev] = false;
+      if (box) box.value = '';
+      const th: Item = { t: 'thinking' };
+      c.items.push(th);
+      c.status = 'working';
+      c.ago = 0;
+      render();
+      setTimeout(() => {
+        const i = c.items.indexOf(th);
+        if (i < 0) return;
+        c.items.splice(i, 1, { t: 'text', text: t.reply(text || 'screenshot.png') });
+        c.status = 'done';
+        render();
+      }, 1400);
+    };
+    const stop = () => {
+      const c = conv();
+      let changed = false;
+      c.items = c.items.filter((it) => { if (it.t === 'thinking') { changed = true; return false; } return true; });
+      for (const it of c.items) if (it.t === 'run' && !it.end) { it.end = Date.now(); it.stopped = true; changed = true; }
+      if (!changed) return;
+      c.items.push({ t: 'notice', text: t.stopped });
+      c.status = 'idle';
+      render();
+    };
+
+    root.addEventListener('click', async (e) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>('[data-act]');
+      if (!el || !root.contains(el)) return;
+      const a = el.dataset.act!;
+      if (a === 'check') return;
+      const inMirror = !!el.closest('.mirror');
+      const fromPhone = !!el.closest('[data-stage="phone"]') && !inMirror;
+      switch (a) {
+        case 'open': { const c = conv(el.dataset.id); st.sel = c.id; c.unread = false; st.menu = false; if (fromPhone) st.phone = 'chat'; break; }
+        case 'answer': answer(Number(el.dataset.k)); if (inMirror) toast(`✓ ${t.answered}`); return;
+        case 'tools': { const it = conv().items[Number(el.dataset.i)]; if (it.t === 'tools') it.open = !it.open; break; }
+        case 'copy': {
+          const text = el.parentElement?.querySelector('pre')?.textContent ?? '';
+          try { await navigator.clipboard.writeText(text); } catch { /* 没有剪贴板权限也给提示 */ }
+          toast(t.copied);
+          return;
+        }
+        case 'mchat': st.macView = 'chat'; break;
+        case 'mterm': if (fromPhone) st.phone = 'term'; else st.macView = 'term'; break;
+        case 'sidebar': st.sidebar = !st.sidebar; break;
+        case 'menu': st.menu = !st.menu; break;
+        case 'machine': st.machine = el.dataset.k as typeof st.machine; st.chip = 'all'; st.menu = false; break;
+        case 'chip': st.chip = el.dataset.k!; break;
+        case 'pchip': st.pchip = el.dataset.k!; break;
+        case 'new': {
+          st.newCount++;
+          const c: Conv = { id: `n${st.newCount}`, ws: 'weather-app', machine: 'mac', agent: 'claude', status: 'idle', ago: 0, title: { zh: t.newChat, en: t.newChat }, items: [], term: ['\x1b[g]❯\x1b[0] claude'] };
+          convs.unshift(c); st.sel = c.id; st.macView = 'chat'; st.chip = 'all'; st.query = ''; st.pchip = 'all'; st.pquery = '';
+          if (fromPhone) st.phone = 'chat';
+          render();
+          root.querySelector<HTMLTextAreaElement>(`textarea[data-input="${fromPhone ? 'phone' : 'mac'}"]`)?.focus({ preventScroll: true });
+          return;
+        }
+        case 'attach': st.attach[el.dataset.dev!] = true; toast(t.attach); break;
+        case 'unattach': st.attach[el.dataset.dev!] = false; break;
+        case 'send': send(el.dataset.dev!); return;
+        case 'stop': stop(); return;
+        case 'pback': st.phone = st.phone === 'term' ? 'chat' : 'list'; st.sheet = false; break;
+        case 'pterm': st.phone = st.phone === 'term' ? 'chat' : 'term'; break;
+        case 'screen': st.phone = 'screen'; break;
+        case 'gear': st.sheet = !st.sheet; break;
+        case 'key': toast(`${el.dataset.k} → MacBook Pro`); return;
+      }
+      render();
+    });
+    root.addEventListener('change', (e) => {
+      const x = e.target as HTMLInputElement;
+      if (x.dataset.act === 'check') x.closest('li')?.classList.toggle('done', x.checked);
+    });
+    root.addEventListener('input', (e) => {
+      const x = e.target as HTMLInputElement;
+      if (x.dataset.q === 'mac' || x.dataset.q === 'mirror') { st.query = x.value; render(); }
+      if (x.dataset.q === 'phone') { st.pquery = x.value; render(); }
+    });
+    root.addEventListener('keydown', (e) => {
+      const x = e.target as HTMLTextAreaElement;
+      if (x.dataset.input && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); send(x.dataset.input); }
+    });
+    root.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = (e.target as HTMLFormElement).querySelector('input')!;
+      if (!input.value.trim()) return;
+      conv().term.push(`\x1b[g]❯\x1b[0] ${esc(input.value).replace(/\x1b/g, '')}`, `\x1b[d]${t.sentTerm}\x1b[0]`);
+      input.value = '';
+      render();
+    });
+    // 计时器每秒走一格，只改数字不重画
+    setInterval(() => {
+      root.querySelectorAll<HTMLElement>('[data-timer]').forEach((el) => {
+        const [id, i] = el.dataset.timer!.split(':');
+        const it = convs.find((c) => c.id === id)?.items[Number(i)];
+        if (it?.t === 'run') el.textContent = timer(it);
+      });
+    }, 1000);
+
+    // 两台设备按原生尺寸画，缩放到页面宽度
+    const fit = () => {
+      macStage.style.setProperty('--s', String(macStage.parentElement!.clientWidth / 1024));
+      phoneStage.style.setProperty('--s', String(phoneStage.parentElement!.clientWidth / 390));
+    };
+    new ResizeObserver(fit).observe(root);
+    render();
+    fit();
+
+    // ?tour：自动点一遍
+    const tour = new URLSearchParams(location.search).get('tour');
+    if (tour === null) return;
+    root.classList.add('touring');
+    const cursor = root.querySelector<HTMLElement>('.cursor')!;
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    const tap = async (sel: string) => {
+      const el = root.querySelector<HTMLElement>(sel);
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const o = root.getBoundingClientRect();
+      cursor.style.transform = `translate(${r.left - o.left + r.width / 2}px, ${r.top - o.top + r.height / 2}px)`;
+      await sleep(800);
+      cursor.classList.add('down');
+      el.click();
+      await sleep(200);
+      cursor.classList.remove('down');
+    };
+    (async () => {
+      await sleep(Number(tour) || 1000);
+      await tap('[data-stage="phone"] [data-act="open"][data-id="c1"]');
+      await sleep(1500);
+      await tap('[data-stage="phone"] [data-act="answer"][data-k="0"]');
+      await sleep(2000);
+      await tap('[data-stage="mac"] [data-act="mterm"]');
+      await sleep(1600);
+      await tap('[data-stage="mac"] [data-act="mchat"]');
+      await sleep(1000);
+      await tap('textarea[data-input="mac"]');
+      const box = root.querySelector<HTMLTextAreaElement>('textarea[data-input="mac"]')!;
+      for (const ch of t.tourMsg) { box.value += ch; await sleep(60); }
+      await tap('[data-stage="mac"] [data-act="send"][data-dev="mac"]');
+      await sleep(3000);
+      root.dataset.tourDone = '1';
+    })();
+  });
+</script>
+
+<style is:global>
+  /* 内容是脚本插进来的，作用域样式匹配不到，所以用全局样式，每条都挂在 .hd 下面 */
+  .hd {
+    --acc: #24345e; --acc-ink: #fff; --win: #fff; --side: #f2f2f4; --ink: #1d1d1f; --ink2: #86868b; --line: #e5e5ea;
+    --fill: #f0f0f3; --card: #fff; --code: #f6f6f8; --pbg: #f2f2f7; --orange: #f08a24; --green: #34c759; --blue: #2f5bd3;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', 'Noto Sans SC', sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-align: left;
+  }
+  @media (prefers-color-scheme: dark) {
+    .hd { --acc: #a9b8f2; --acc-ink: #16171a; --win: #1e1e1f; --side: #29292b; --ink: #ececee; --ink2: #8e8e93; --line: #38383a; --fill: #2c2c2e; --card: #1c1c1e; --code: #2a2a2c; --pbg: #000; --blue: #6f95ff; }
+  }
+  .hd * { box-sizing: border-box; }
+  .hd button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: left; }
+  .hd svg { width: 1em; height: 1em; fill: currentColor; flex-shrink: 0; }
+  .hd p, .hd h4, .hd ol, .hd ul, .hd pre, .hd blockquote, .hd table { margin: 0; }
+  .hd code, .hd pre { font-family: ui-monospace, 'SF Mono', Menlo, 'JetBrains Mono', monospace; }
+
+  /* 外框和缩放：舞台按原生尺寸画，--s 由脚本按外框宽度算 */
+  .hd .dev { position: relative; min-width: 0; }
+  .hd .mac-dev { flex: 0 0 70%; aspect-ratio: 1024 / 680; border-radius: 12px; overflow: hidden; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 24px 60px rgba(0, 0, 0, 0.18); }
+  .hd .phone-dev { flex: 0 0 25%; }
+  .hd .bezel { padding: 3.4%; border-radius: 16% / 7.4%; background: #16171a; box-shadow: 0 0 0 2px #2b2d33 inset, 0 24px 60px rgba(0, 0, 0, 0.22); }
+  .hd .screen { position: relative; aspect-ratio: 390 / 844; border-radius: 13% / 6%; overflow: hidden; background: var(--pbg); }
+  @media (prefers-color-scheme: dark) {
+    .hd .mac-dev { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 24px 60px rgba(0, 0, 0, 0.5); }
+    .hd .bezel { box-shadow: 0 0 0 2px #2b2d33 inset, 0 0 0 1px rgba(255, 255, 255, 0.12), 0 24px 60px rgba(0, 0, 0, 0.5); }
+  }
+  /* 舞台绝对定位，原生尺寸不参与外框布局 */
+  .hd .stage { --s: 0.6; position: absolute; left: 0; top: 0; transform-origin: 0 0; transform: scale(var(--s)); }
+  .hd [data-stage='mac'] { width: 1024px; height: 680px; }
+  .hd [data-stage='phone'] { width: 390px; height: 844px; font-size: 16px; }
+
+  /* ---------- Mac ---------- */
+  .hd .mac { display: flex; width: 1024px; height: 680px; background: var(--win); font-size: 13px; line-height: 1.45; }
+  .hd .sb { width: 268px; flex-shrink: 0; display: flex; flex-direction: column; padding: 12px 10px 0; background: var(--side); border-right: 1px solid var(--line); }
+  .hd .nosb .sb { display: none; }
+  .hd .tl { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 4px; }
+  .hd .tl i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
+  .hd .tl i:nth-child(2) { background: #febc2e; }
+  .hd .tl i:nth-child(3) { background: #28c840; }
+  .hd .tl span { flex: 1; }
+  .hd .tl.small { margin-right: 10px; padding: 0; }
+  .hd .ib { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; border-radius: 6px; color: var(--ink2); font-size: 17px; }
+  .hd .ib:hover { background: rgba(118, 118, 128, 0.14); color: var(--ink); }
+  .hd .sf { display: flex; align-items: center; gap: 6px; margin: 12px 4px 8px; padding: 5px 9px; border-radius: 7px; background: rgba(118, 118, 128, 0.12); color: var(--ink2); }
+  .hd .sf input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: var(--ink); font: inherit; }
+  .hd .mh { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 6px 4px; }
+  .hd .mb { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+  .hd .menu { position: absolute; top: 30px; left: 0; z-index: 3; min-width: 180px; padding: 5px; border-radius: 8px; background: var(--card); box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.2), 0 10px 30px rgba(0, 0, 0, 0.2); }
+  .hd .menu button { display: flex; align-items: center; gap: 6px; width: 100%; padding: 4px 8px; border-radius: 5px; }
+  .hd .menu button:hover { background: var(--acc); color: var(--acc-ink); }
+  .hd .menu i { width: 1em; }
+  .hd .chips { display: flex; gap: 6px; padding: 2px 4px 8px; overflow: hidden; }
+  .hd .chip { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 3px 10px; border-radius: 999px; background: rgba(118, 118, 128, 0.12); font-size: 12px; }
+  .hd .chip.on { background: var(--acc); color: var(--acc-ink); font-weight: 600; }
+  .hd .list { flex: 1; overflow: auto; scrollbar-width: none; }
+  .hd .sec { display: flex; align-items: center; gap: 5px; padding: 10px 6px 4px; font-size: 11px; font-weight: 600; color: var(--ink2); }
+  .hd .sec em { padding: 0 6px; border-radius: 999px; background: rgba(240, 138, 36, 0.18); color: var(--orange); font-style: normal; }
+  .hd .row { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px; border-radius: 7px; }
+  .hd .row:hover { background: rgba(118, 118, 128, 0.1); }
+  .hd .row.sel { background: rgba(118, 118, 128, 0.2); }
+  .hd .rt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .hd .rt b { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hd .rt small { font-size: 11px; color: var(--ink2); }
+  .hd .tm { font-size: 11px; color: var(--ink2); }
+  .hd .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .hd .dot.o { background: var(--orange); }
+  .hd .dot.b { background: var(--blue); }
+  .hd .dot.n { background: transparent; }
+  .hd .spin { display: inline-block; width: 11px; height: 11px; flex-shrink: 0; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--ink2); animation: hd-spin 0.9s linear infinite; }
+  @keyframes hd-spin { to { transform: rotate(360deg); } }
+  .hd .ag { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 20px; height: 20px; border-radius: 5px; font-style: normal; font-size: 10px; font-weight: 700; }
+  .hd .ag.claude { color: #d97757; background: rgba(217, 119, 87, 0.15); font-size: 14px; }
+  .hd .ag.codex, .hd .ag.zsh { background: rgba(118, 118, 128, 0.16); }
+  .hd .ag.zsh { font-size: 9px; }
+  .hd .ag.pi { color: #6c5ce7; background: rgba(108, 92, 231, 0.14); font-size: 12px; }
+
+  .hd .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .hd .main header { display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 14px 0 18px; border-bottom: 1px solid var(--line); }
+  .hd .tt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+  .hd .tt b { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hd .tt small { font-size: 11px; color: var(--ink2); display: inline-flex; align-items: center; gap: 4px; }
+  .hd .seg { display: flex; gap: 2px; padding: 2px; border-radius: 8px; background: rgba(118, 118, 128, 0.12); }
+  .hd .seg button { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 24px; border-radius: 6px; color: var(--ink2); font-size: 15px; }
+  .hd .seg button.on { background: var(--win); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15); }
+  .hd .scroll { flex: 1; overflow: auto; scrollbar-width: thin; }
+  .hd .tr { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px; }
+  .hd .u { display: flex; justify-content: flex-end; }
+  .hd .u p { max-width: 78%; padding: 7px 12px; border-radius: 14px; background: var(--fill); white-space: pre-wrap; }
+  .hd .file { display: inline-flex; align-items: center; gap: 4px; margin: 0 4px; padding: 1px 6px; border-radius: 5px; background: rgba(118, 118, 128, 0.16); font-size: 11px; }
+  .hd .file button { display: inline-flex; }
+  .hd .tsum { display: inline-flex; align-items: center; gap: 4px; color: var(--ink2); }
+  .hd .tools.open .tsum svg { transform: rotate(90deg); }
+  .hd .tlist { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .hd .tlist p { display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 6px; background: var(--code); font-size: 12px; }
+  .hd .tlist em { margin-left: auto; color: var(--ink2); font-style: normal; }
+  .hd .ok { color: var(--green); display: inline-flex; }
+  .hd .md { display: flex; flex-direction: column; gap: 8px; }
+  .hd .md h4 { font-size: 15px; }
+  .hd .md ol { padding-left: 20px; }
+  .hd .md :not(pre) > code { padding: 1px 4px; border-radius: 4px; background: var(--code); font-size: 12px; }
+  .hd .md table { border-collapse: collapse; font-size: 12px; align-self: flex-start; }
+  .hd .md th, .hd .md td { padding: 3px 12px; border: 1px solid var(--line); text-align: left; }
+  .hd .md th { background: var(--code); }
+  .hd .code { position: relative; border-radius: 8px; background: var(--code); border: 1px solid var(--line); }
+  .hd .code .lang { display: block; padding: 5px 10px 0; font-size: 11px; color: var(--ink2); font-family: ui-monospace, Menlo, monospace; }
+  .hd .code .copy { position: absolute; top: 5px; right: 6px; width: 22px; height: 20px; border-radius: 5px; background: no-repeat center / 13px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2386868b'%3E%3Cpath d='M8 3h11a2 2 0 0 1 2 2v11h-2V5H8V3ZM5 7h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm0 2v10h10V9H5Z'/%3E%3C/svg%3E"); }
+  .hd .code .copy:hover { background-color: var(--fill); }
+  .hd .code pre { padding: 6px 10px 9px; font-size: 12px; line-height: 1.5; overflow-x: auto; }
+  .hd .code .k { color: #ad3da4; }
+  .hd .code .ty { color: #3f6ec6; }
+  @media (prefers-color-scheme: dark) { .hd .code .k { color: #ff7ab2; } .hd .code .ty { color: #6bdfff; } }
+  .hd .md blockquote { padding-left: 10px; border-left: 3px solid var(--line); color: var(--ink2); }
+  .hd .todo { list-style: none; padding: 0; }
+  .hd .todo label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  .hd .todo input { accent-color: var(--acc); margin: 0; }
+  .hd .todo li:has(input:checked) { color: var(--ink2); text-decoration: line-through; }
+  .hd .notice { display: flex; justify-content: center; }
+  .hd .notice span { padding: 2px 9px; border-radius: 999px; background: var(--fill); font-size: 11px; color: var(--ink2); }
+  .hd .think, .hd .run { display: flex; align-items: center; gap: 7px; color: var(--ink2); }
+  .hd .run b { color: var(--ink); }
+  .hd .run code { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+  .hd .run .tmr { font-variant-numeric: tabular-nums; }
+  .hd .run .x { font-size: 10px; }
+  .hd .prompt { padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(240, 138, 36, 0.55); background: rgba(240, 138, 36, 0.05); }
+  .hd .ph { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--orange); }
+  .hd .ph span { display: inline-flex; align-items: center; gap: 5px; }
+  .hd .ph button { color: var(--ink2); font-weight: 500; }
+  .hd .pk { margin-top: 6px !important; font-size: 11px; color: var(--ink2); }
+  .hd .pc { display: block; margin-top: 4px; padding: 6px 9px; border-radius: 6px; background: var(--code); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hd .pq { margin: 8px 0 4px !important; font-weight: 700; }
+  .hd .opt { display: flex; align-items: center; gap: 9px; width: 100%; padding: 6px 9px; border-radius: 7px; }
+  .hd .opt:hover, .hd .opt.cur { background: rgba(118, 118, 128, 0.12); }
+  .hd .opt span { flex: 1; }
+  .hd .opt em { font-style: normal; font-size: 11px; color: var(--ink2); }
+  .hd .radio { width: 13px; height: 13px; border-radius: 50%; border: 1.5px solid var(--ink2); flex-shrink: 0; }
+  .hd .opt.cur .radio { border: 4px solid var(--acc); }
+  .hd .comp { margin: 0 14px 12px; padding: 8px 10px 6px; border-radius: 10px; border: 1px solid var(--line); background: var(--win); }
+  .hd .comp textarea { display: block; width: 100%; height: 22px; border: 0; outline: 0; resize: none; background: none; color: var(--ink); font: inherit; }
+  .hd .cb { display: flex; align-items: center; gap: 6px; }
+  .hd .cb small { flex: 1; font-size: 11px; color: var(--ink2); }
+  .hd .send { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--acc); color: var(--acc-ink); font-size: 15px; }
+  .hd .send.stop { background: rgba(118, 118, 128, 0.16); color: var(--ink); font-size: 12px; }
+  .hd .term { flex: 1; display: flex; flex-direction: column; min-height: 0; background: #101114; color: #e6e6e6; }
+  .hd .term pre { flex: 1; overflow: auto; padding: 14px 18px; font-size: 12px; line-height: 1.55; white-space: pre-wrap; }
+  .hd .a-g { color: #7ee787; } .hd .a-d { color: #7d8089; } .hd .a-o { color: #f0a35e; } .hd .a-c { color: #79c0ff; } .hd .a-r { color: #ff7b72; }
+  .hd .tin { display: flex; align-items: center; gap: 8px; margin: 0 12px 10px; padding: 6px 10px; border-radius: 8px; background: #1d1f24; font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+  .hd .tin span { color: #7ee787; }
+  .hd .tin input { flex: 1; min-width: 0; border: 0; outline: 0; background: none; color: #e6e6e6; font: inherit; }
+
+  /* ---------- iPhone ---------- */
+  .hd .sbar { position: relative; display: flex; justify-content: space-between; align-items: center; height: 54px; padding: 14px 30px 0 44px; font-size: 16px; }
+  .hd .si { display: inline-flex; align-items: flex-end; gap: 2px; }
+  .hd .si i { width: 3px; background: var(--ink); border-radius: 1px; }
+  .hd .si i:nth-child(1) { height: 4px; } .hd .si i:nth-child(2) { height: 6px; } .hd .si i:nth-child(3) { height: 8px; } .hd .si i:nth-child(4) { height: 10px; }
+  .hd .bat { width: 24px; height: 11px; margin-left: 6px; border-radius: 3px; border: 1.5px solid var(--ink); box-shadow: inset 0 0 0 1.5px var(--pbg); background: var(--ink); }
+  .hd .p-screen .si i, .hd .p-screen .bat { background: #fff; border-color: #fff; }
+  .hd .island { position: absolute; left: 50%; top: 11px; width: 124px; height: 36px; border-radius: 999px; background: #000; transform: translateX(-50%); }
+  .hd .p-list, .hd .p-chat, .hd .p-screen { position: relative; display: flex; flex-direction: column; height: 790px; }
+  .hd .pbar { display: flex; align-items: center; gap: 10px; padding: 6px 16px 8px; }
+  .hd .pbar .tt b { font-size: 15px; }
+  .hd .mt { flex: 1; display: inline-flex; justify-content: center; align-items: center; gap: 4px; font-size: 16px; }
+  .hd .circle { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--card); font-size: 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
+  .hd .cap { display: inline-flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--card); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
+  .hd .cap button { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 32px; border-radius: 999px; font-size: 20px; }
+  .hd .cap button.on { background: var(--acc); color: var(--acc-ink); }
+  .hd .p-list .sf { margin: 2px 16px 6px; padding: 9px 12px; border-radius: 12px; background: var(--card); }
+  .hd .net { display: flex; align-items: center; gap: 5px; padding: 0 20px; font-size: 12px; color: var(--green); }
+  .hd .p-list .chips { padding: 8px 16px; overflow-x: auto; scrollbar-width: none; }
+  .hd .p-list .chip { padding: 6px 13px; font-size: 14px; background: rgba(118, 118, 128, 0.14); }
+  .hd .p-list .chip.on { background: var(--acc); }
+  .hd .p-list .list, .hd .p-chat .scroll { flex: 1; overflow: auto; padding: 0 16px 16px; scrollbar-width: none; }
+  .hd .p-list .sec { padding: 12px 6px 6px; font-size: 13px; }
+  .hd .grp { border-radius: 14px; background: var(--card); overflow: hidden; }
+  .hd .sb .grp { background: none; }
+  .hd .p-list .row, .hd .sheet .row { gap: 10px; padding: 12px 14px; border-radius: 0; }
+  .hd .p-list .row + .row { border-top: 0.5px solid var(--line); }
+  .hd .p-list .rt small, .hd .p-list .tm { font-size: 12px; }
+  .hd .p-list .ag { width: 24px; height: 24px; }
+  .hd .sheet { position: absolute; inset: 120px 0 0; z-index: 2; padding: 16px; border-radius: 18px 18px 0 0; background: var(--pbg); box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.18); }
+  .hd .sh { display: flex; justify-content: space-between; align-items: center; padding: 4px 4px 10px; font-size: 17px; }
+  .hd .sh button { color: var(--blue); }
+  .hd .sheet .row { display: flex; align-items: center; }
+  .hd .p-chat .tr { padding: 6px 0 12px; font-size: 15px; gap: 12px; }
+  .hd .p-chat .u p { border-radius: 18px; padding: 9px 14px; }
+  .hd .p-chat .comp { margin: 0 12px 26px; border-radius: 22px; padding: 8px 8px 8px 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .hd .p-chat .comp textarea { flex: 1; width: auto; height: 24px; order: 2; font-size: 16px; }
+  .hd .p-chat .comp .cb { display: contents; }
+  .hd .p-chat .comp .ib { order: 1; font-size: 20px; }
+  .hd .p-chat .comp .send { order: 3; width: 30px; height: 30px; }
+  .hd .p-chat .comp .file { order: 0; flex-basis: 100%; margin: 0 0 4px; width: max-content; }
+  .hd .p-chat .tin { margin-bottom: 28px; font-size: 13px; }
+  .hd .p-screen { background: #000; color: #fff; }
+  .hd .pbar.dark .tt small { color: #8e8e93; }
+  .hd .pill { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); font-size: 15px; }
+  .hd .mirror { margin-top: 150px; width: 390px; height: 259px; overflow: hidden; }
+  .hd .mirror-in { width: 1024px; height: 680px; transform: scale(0.3809); transform-origin: 0 0; color: var(--ink); }
+  .hd .live { margin-top: 10px !important; text-align: center; font-size: 12px; color: var(--green); }
+  .hd .keys { display: flex; justify-content: center; gap: 8px; margin-top: auto; padding-bottom: 40px; }
+  .hd .keys button { padding: 8px 12px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); font-family: ui-monospace, Menlo, monospace; font-size: 14px; }
+
+  /* 提示条和光标 */
+  .hd .toast { position: absolute; left: 35%; bottom: 8%; z-index: 6; margin: 0; padding: 8px 16px; border-radius: 999px; background: rgba(22, 23, 26, 0.88); color: #fff; font-size: 13px; white-space: nowrap; transform: translateX(-50%); opacity: 0; transition: opacity 0.25s; pointer-events: none; }
+  .hd.toasting .toast { opacity: 1; }
+  .hd .cursor { position: absolute; left: -14px; top: -14px; width: 28px; height: 28px; border-radius: 50%; background: rgba(229, 83, 45, 0.3); border: 3px solid #e5532d; transform: translate(400px, 200px); transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; display: none; z-index: 7; }
+  .hd .cursor.down { background: rgba(229, 83, 45, 0.65); scale: 0.85; }
+  .hd .touring .cursor { display: block; }
+  @media (max-width: 760px) {
+    .hd { flex-direction: column; gap: 24px; }
+    .hd .mac-dev { flex-basis: auto; width: 100%; }
+    .hd .phone-dev { flex-basis: auto; width: 72%; }
+    .hd .toast { left: 50%; bottom: 2%; }
+  }
+</style>

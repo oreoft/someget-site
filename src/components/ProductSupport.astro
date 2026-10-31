@@ -10,13 +10,14 @@ import instash from '../content/instash.js';
 import blink from '../content/blink.js';
 import raiju from '../content/raiju.js';
 import fastzz from '../content/fastzz.js';
+import herdsman from '../content/herdsman.js';
 
 interface Props {
   id: string;
   lang: 'zh' | 'en';
 }
 
-const contents: Record<string, any> = { loopback, muninn, instash, blink, raiju, fastzz };
+const contents: Record<string, any> = { loopback, muninn, instash, blink, raiju, fastzz, herdsman };
 const { id, lang } = Astro.props;
 const product = getProduct(id);
 const faq = contents[id][lang].faq;

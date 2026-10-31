@@ -13,6 +13,7 @@ import InStashDemo from '../demos/InStashDemo.astro';
 import BlinkDemo from '../demos/BlinkDemo.astro';
 import RaijuDemo from '../demos/RaijuDemo.astro';
 import FastZZDemo from '../demos/FastZZDemo.astro';
+import HerdsmanDemo from '../demos/HerdsmanDemo.astro';
 import { getProduct } from '../products.js';
 import { ui } from '../i18n.js';
 import loopback from '../content/loopback.js';
@@ -21,20 +22,21 @@ import instash from '../content/instash.js';
 import blink from '../content/blink.js';
 import raiju from '../content/raiju.js';
 import fastzz from '../content/fastzz.js';
+import herdsman from '../content/herdsman.js';
 
 interface Props {
   id: string;
   lang: 'zh' | 'en';
 }
 
-const contents: Record<string, any> = { loopback, muninn, instash, blink, raiju, fastzz };
-const demos: Record<string, any> = { loopback: LoopbackDemo, muninn: MuninnDemo, instash: InStashDemo, blink: BlinkDemo, raiju: RaijuDemo, fastzz: FastZZDemo };
+const contents: Record<string, any> = { loopback, muninn, instash, blink, raiju, fastzz, herdsman };
+const demos: Record<string, any> = { loopback: LoopbackDemo, muninn: MuninnDemo, instash: InStashDemo, blink: BlinkDemo, raiju: RaijuDemo, fastzz: FastZZDemo, herdsman: HerdsmanDemo };
 const { id, lang } = Astro.props;
 const product = getProduct(id);
 const c = contents[id][lang];
 const t = ui[lang];
 const Demo = demos[id];
-// 只有 Mac 版的产品，演示放进 Mac 外框；其余放手机外框
+// 只有 Mac 版的产品，演示放进 Mac 外框；其余放手机外框；ownFrame 的演示自带外框（电脑 + 手机同框）
 const Frame = product.platforms.every((x: string) => x === 'macOS') ? MacFrame : PhoneFrame;
 const path = `/${id}`;
 const icon = `/icons/${id}.png`;
@@ -63,7 +65,7 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
         </div>
         <h1 class="display">{c.heroTitle}</h1>
         <p class="sub">{c.heroSub}</p>
-        <DownloadCta product={product} t={t} storeLabel={storeLabel} showDemo />
+        <DownloadCta product={product} t={t} lang={lang} storeLabel={storeLabel} showDemo />
       </div>
       <div class="hero-art" style={`--tint: ${product.tint}`} aria-hidden="true">
         <picture>{iconDark && <source srcset={iconDark} media="(prefers-color-scheme: dark)" />}<img class="app-icon big" src={icon} alt="" width="260" height="260" /></picture>
@@ -85,7 +87,22 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
       </div>
     </section>
 
-    <section id="demo" class="container block demo">
+    {
+      (c.video || c.shots) && (
+        <section class="container block media">
+          <h2 class="display">{c.mediaTitle}</h2>
+          {c.mediaDesc && <p class="sub">{c.mediaDesc}</p>}
+          {c.video && <video class="promo" src={c.video.src} poster={c.video.poster} controls playsinline preload="none" />}
+          {c.shots && (
+            <div class:list={['shots', { wide: c.shotsWide }]}>
+              {c.shots.map((src: string) => <img src={src} alt="" loading="lazy" width={c.shotsWide ? 2400 : 660} height={c.shotsWide ? 1350 : 1434} />)}
+            </div>
+          )}
+        </section>
+      )
+    }
+
+    <section id="demo" class:list={["container block demo", { wide: product.ownFrame }]}>
       <div class="demo-text">
         <h2 class="display">{c.demoTitle}</h2>
         <p class="sub">{c.demoDesc}</p>
@@ -94,9 +111,11 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
         </ol>
         <p class="hint">{t.demoHint}</p>
       </div>
-      <Frame label={`${product.name} demo`}>
-        <Demo lang={lang} />
-      </Frame>
+      {product.ownFrame ? <Demo lang={lang} /> : (
+        <Frame label={`${product.name} demo`}>
+          <Demo lang={lang} />
+        </Frame>
+      )}
     </section>
 
     <section class="container block download">
@@ -106,7 +125,7 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
         <p class="sub">{product[lang].tagline}</p>
       </div>
       <div class="download-actions">
-        <DownloadCta product={product} t={t} storeLabel={storeLabel} />
+        <DownloadCta product={product} t={t} lang={lang} storeLabel={storeLabel} />
       </div>
     </section>
   </main>
@@ -206,11 +225,60 @@ const storeLabel = product.platforms.includes('macOS') ? t.downloadMac : t.downl
     line-height: 1.75;
     color: var(--ink-2);
   }
+  /* 真机图和宣传视频：视频整宽，截图横向滑动 */
+  .promo {
+    display: block;
+    width: 100%;
+    margin-top: 40px;
+    border-radius: 20px;
+    background: #000;
+    aspect-ratio: 16 / 9;
+  }
+  .shots {
+    display: flex;
+    gap: 20px;
+    margin-top: 28px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+  }
+  .shots img {
+    flex: 0 0 auto;
+    width: 260px;
+    height: auto;
+    border-radius: 24px;
+    scroll-snap-align: start;
+  }
+  /* 横版宣传图：两列网格，窄屏单列 */
+  .shots.wide {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .shots.wide img {
+    width: 100%;
+    border-radius: 16px;
+  }
+  @media (max-width: 760px) {
+    .shots.wide {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
   .demo {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 64px;
     align-items: center;
+  }
+  /* 演示自带外框（电脑 + 手机真机画面）：文字在上、演示占满整行，步骤横排 */
+  .demo.wide {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+  }
+  .demo.wide .steps {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 12px 32px;
   }
   .steps {
     margin: 28px 0 0;

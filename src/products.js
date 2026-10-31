@@ -20,6 +20,32 @@ export const products = [
     },
   },
   {
+    id: 'herdsman',
+    tint: '#24345E',
+    name: 'Herdsman',
+    platforms: ['macOS', 'Windows', 'iOS', 'Android'],
+    darkIcon: true,
+    // 演示自带「小电脑 + 小手机」外框，落地页不再套 MacFrame / PhoneFrame
+    ownFrame: true,
+    // 每端一个下载按钮；url 留空显示「即将推出」。Mac / Windows / 安卓走官网安装包，iPhone 走 App Store
+    downloads: [
+      { icon: 'apple', zh: 'Mac 版', en: 'Mac', url: '' },
+      { icon: 'windows', zh: 'Windows 版', en: 'Windows', url: '' },
+      { icon: 'apple', zh: 'iPhone 版', en: 'iPhone', url: '' },
+      { icon: 'android', zh: '安卓版', en: 'Android', url: '' },
+    ],
+    zh: {
+      storeName: 'Herdsman：herdr 图形客户端',
+      tagline: '你的 agent，一眼看全。',
+      summary: 'herdr 的原生图形客户端：Claude Code、Codex、pi 的对话在 Mac、Windows、iPhone、安卓上直接看、直接答；手机扫码就连上，还能远程看屏、接管电脑。',
+    },
+    en: {
+      storeName: 'Herdsman: GUI for herdr',
+      tagline: 'All your agents, at a glance.',
+      summary: 'The native GUI client for herdr. Follow and answer Claude Code, Codex and pi from your Mac, Windows PC, iPhone or Android. Scan to pair, then view and control your computer from your phone.',
+    },
+  },
+  {
     id: 'raiju',
     tint: '#FF6A13',
     name: 'Raiju',
