@@ -85,9 +85,7 @@ export const products = [
     tint: '#F0832E',
     name: 'Blink',
     platforms: ['macOS'],
-    // 还没上架：下载按钮显示「即将推出」。上架后去掉 comingSoon，把 storeUrl 换成真实的 App Store 链接
-    comingSoon: true,
-    storeUrl: 'https://apps.apple.com/app/id0000000000',
+    storeUrl: 'https://apps.apple.com/app/id6826502915',
     zh: {
       tagline: '一键直达你的应用。',
       summary: '给常用的应用绑定全局快捷键，按一下打开或切到它，再按一下隐藏。',
